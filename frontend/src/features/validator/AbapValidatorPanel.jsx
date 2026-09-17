@@ -37,45 +37,24 @@ export const AbapValidatorPanel = () => {
   };
 
   return (
-    <div className="border-t border-slate-200 dark:border-slate-800 bg-white/95 dark:bg-slate-900/95 px-3 py-1.5 space-y-2 select-none backdrop-blur-sm transition-all duration-200 shrink-0">
-      <div
-        onClick={() => setIsExpanded(!isExpanded)}
-        className="flex items-center justify-between cursor-pointer py-0.5"
-      >
-        <div className="flex items-center gap-2">
-          <Code2 className="w-4 h-4 text-sky-600 dark:text-sky-400" />
-          <span className="font-bold text-xs text-slate-800 dark:text-slate-100">ABAP Smart Validator & Open SQL</span>
-          {validation.is_valid ? (
-            <span className="text-[10px] bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800 px-2 py-0.2 rounded font-mono font-bold flex items-center gap-1">
-              <CheckCircle2 className="w-3 h-3" />
-              <span>JOIN VALID</span>
-            </span>
-          ) : (
-            <span className="text-[10px] bg-red-50 dark:bg-red-950/60 text-red-700 dark:text-red-400 border border-red-200 dark:border-red-800 px-2 py-0.2 rounded font-mono font-bold flex items-center gap-1">
-              <AlertTriangle className="w-3 h-3" />
-              <span>INVALID JOIN</span>
-            </span>
-          )}
-        </div>
-
-        <div className="flex items-center gap-2">
-          <button
-            onClick={handleCopy}
-            className="flex items-center gap-1 px-2 py-0.5 rounded-lg bg-slate-50 dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 text-[10px] font-medium border border-slate-200 dark:border-slate-700 transition"
-            title="Salin Syntax Open SQL"
-          >
-            {copied ? <Check className="w-3 h-3 text-emerald-600 dark:text-emerald-400" /> : <Copy className="w-3 h-3 text-slate-500 dark:text-slate-400" />}
-            <span>{copied ? 'Tersalin!' : 'Copy SQL'}</span>
-          </button>
-          <div className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 p-0.5">
-            {isExpanded ? <ChevronDown className="w-4 h-4" /> : <ChevronUp className="w-4 h-4" />}
-          </div>
-        </div>
-      </div>
-
+    <div className="absolute bottom-3 right-3 z-20 flex flex-col items-end pointer-events-auto select-none">
       {/* Expandable Section: Errors & SQL Code Block */}
       {isExpanded && (
-        <div className="space-y-2 pt-1 pb-1 animate-in fade-in duration-150">
+        <div className="mb-2 w-96 max-w-[calc(100vw-300px)] p-3.5 rounded-2xl bg-white/95 dark:bg-slate-900/95 border border-slate-200 dark:border-slate-800 shadow-2xl backdrop-blur-md space-y-2.5 animate-in fade-in zoom-in-95 duration-150 text-slate-800 dark:text-slate-100">
+          <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-2">
+            <span className="font-bold text-xs flex items-center gap-1.5">
+              <Code2 className="w-3.5 h-3.5 text-sky-600 dark:text-sky-400" />
+              <span>Generated ABAP Open SQL</span>
+            </span>
+            <button
+              onClick={handleCopy}
+              className="flex items-center gap-1 px-2 py-0.5 rounded-md bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-[10px] font-medium transition cursor-pointer"
+            >
+              {copied ? <Check className="w-3 h-3 text-emerald-600" /> : <Copy className="w-3 h-3 text-slate-500 dark:text-slate-400" />}
+              <span>{copied ? 'Tersalin!' : 'Copy SQL'}</span>
+            </button>
+          </div>
+
           {validation.errors?.length > 0 && (
             <div className="space-y-1">
               {validation.errors.map((err, idx) => (
@@ -92,6 +71,39 @@ export const AbapValidatorPanel = () => {
           </pre>
         </div>
       )}
+
+      {/* Floating Pill Trigger */}
+      <div className="flex items-center gap-2 bg-white/90 dark:bg-slate-900/90 border border-slate-200 dark:border-slate-700/80 rounded-full px-3 py-1 shadow-lg backdrop-blur-md text-xs font-semibold">
+        <Code2 className="w-3.5 h-3.5 text-sky-600 dark:text-sky-400" />
+        <span className="text-[11px] text-slate-700 dark:text-slate-200 font-bold">ABAP Validator</span>
+        {validation.is_valid ? (
+          <span className="text-[10px] bg-emerald-100 dark:bg-emerald-950/60 text-emerald-800 dark:text-emerald-400 border border-emerald-300 dark:border-emerald-800 px-2 py-0.5 rounded-full font-mono font-bold flex items-center gap-1">
+            <CheckCircle2 className="w-3 h-3" />
+            <span>JOIN VALID</span>
+          </span>
+        ) : (
+          <span className="text-[10px] bg-red-100 dark:bg-red-950/60 text-red-800 dark:text-red-400 border border-red-300 dark:border-red-800 px-2 py-0.5 rounded-full font-mono font-bold flex items-center gap-1">
+            <AlertTriangle className="w-3 h-3" />
+            <span>INVALID JOIN</span>
+          </span>
+        )}
+
+        <button
+          onClick={handleCopy}
+          className="p-1 text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 transition cursor-pointer"
+          title="Salin Open SQL"
+        >
+          {copied ? <Check className="w-3.5 h-3.5 text-emerald-600" /> : <Copy className="w-3.5 h-3.5" />}
+        </button>
+
+        <button
+          onClick={() => setIsExpanded(!isExpanded)}
+          className="p-1 text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 transition cursor-pointer"
+          title={isExpanded ? "Tutup Preview SQL" : "Buka Preview SQL"}
+        >
+          {isExpanded ? <ChevronDown className="w-3.5 h-3.5" /> : <ChevronUp className="w-3.5 h-3.5" />}
+        </button>
+      </div>
     </div>
   );
 };

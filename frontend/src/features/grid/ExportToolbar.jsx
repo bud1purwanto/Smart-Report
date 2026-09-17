@@ -147,32 +147,34 @@ export const ExportToolbar = () => {
         <span className="text-slate-300 dark:text-slate-700">|</span>
 
         {/* View Mode Controls: Split, Full ALV, Close ALV */}
-        <div className="flex items-center gap-0.5 bg-slate-100 dark:bg-slate-800 p-0.5 rounded-lg border border-slate-200 dark:border-slate-700">
+        <div className="flex items-center gap-1 bg-slate-100 dark:bg-slate-800 p-0.5 rounded-xl border border-slate-200 dark:border-slate-700">
           <button
             onClick={() => setViewMode('split')}
-            className={`p-1 rounded text-[11px] transition ${
+            className={`flex items-center gap-1 px-2 py-1 rounded-lg text-[11px] font-semibold transition cursor-pointer ${
               viewMode === 'split'
-                ? 'bg-white dark:bg-slate-700 text-sky-600 dark:text-sky-400 font-bold shadow-xs'
+                ? 'bg-white dark:bg-slate-700 text-sky-600 dark:text-sky-300 font-bold shadow-xs'
                 : 'text-slate-500 hover:text-slate-800 dark:hover:text-slate-200'
             }`}
-            title="Tampilan Split (Kanvas + ALV Grid)"
+            title="Tampilan Split 50:50 (Kanvas + ALV Grid)"
           >
             <Columns2 className="w-3.5 h-3.5" />
+            <span className="hidden sm:inline">Split 50:50</span>
           </button>
           <button
             onClick={() => setViewMode(viewMode === 'grid' ? 'split' : 'grid')}
-            className={`p-1 rounded text-[11px] transition ${
+            className={`flex items-center gap-1 px-2 py-1 rounded-lg text-[11px] font-semibold transition cursor-pointer ${
               viewMode === 'grid'
-                ? 'bg-white dark:bg-slate-700 text-sky-600 dark:text-sky-400 font-bold shadow-xs'
+                ? 'bg-white dark:bg-slate-700 text-sky-600 dark:text-sky-300 font-bold shadow-xs'
                 : 'text-slate-500 hover:text-slate-800 dark:hover:text-slate-200'
             }`}
             title={viewMode === 'grid' ? 'Kembali ke Split' : 'Layar Penuh ALV Grid'}
           >
             {viewMode === 'grid' ? <Minimize2 className="w-3.5 h-3.5" /> : <Maximize2 className="w-3.5 h-3.5" />}
+            <span className="hidden sm:inline">{viewMode === 'grid' ? 'Split' : 'ALV Penuh'}</span>
           </button>
           <button
             onClick={() => setViewMode('canvas')}
-            className="p-1 rounded text-slate-400 hover:text-red-500 dark:hover:text-red-400 transition"
+            className="p-1 px-1.5 rounded-lg text-slate-400 hover:text-red-500 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/40 transition cursor-pointer"
             title="Tutup ALV (Kembali ke Kanvas Penuh)"
           >
             <X className="w-3.5 h-3.5" />

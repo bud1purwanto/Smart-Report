@@ -22,10 +22,23 @@ export const AlvGrid = () => {
       sortable: true,
       filter: true,
       resizable: true,
-      minWidth: 100,
+      flex: 1,
+      minWidth: 120,
     }),
     []
   );
+
+  const formattedColumnDefs = useMemo(() => {
+    return (columnDefs || []).map((col) => {
+      const hName = col.headerName || col.field || '';
+      return {
+        ...col,
+        headerName: hName.includes(' ') ? hName.replace(/\s+/, ' • ') : hName,
+        flex: col.flex || 1,
+        minWidth: col.minWidth || 130,
+      };
+    });
+  }, [columnDefs]);
 
   // Track column reordering (RULE 2 COMPLIANCE)
   const onColumnMoved = useCallback(() => {
@@ -57,19 +70,23 @@ export const AlvGrid = () => {
 
       {/* Grid or Empty State */}
       {rowData.length > 0 ? (
-        <div className={`${theme === 'dark' ? 'ag-theme-quartz-dark' : 'ag-theme-quartz'} flex-1 w-full`}>
+        <div className={`${theme === 'dark' ? 'ag-theme-quartz-dark' : 'ag-theme-quartz'} flex-1 w-full h-full`}>
           <AgGridReact
             ref={gridRef}
             rowData={rowData}
-            columnDefs={columnDefs}
+            columnDefs={formattedColumnDefs}
             defaultColDef={defaultColDef}
+            autoSizeStrategy={{
+              type: 'fitGridWidth',
+              defaultMinWidth: 120,
+            }}
             rowBuffer={20}
             animateRows={true}
             suppressMovableColumns={false}
             onColumnMoved={onColumnMoved}
             pagination={true}
             paginationPageSize={100}
-            paginationPageSizeSelector={[50, 100, 200, 500]}
+            paginationPageSizeSelector={[25, 50, 100, 200]}
           />
         </div>
       ) : (

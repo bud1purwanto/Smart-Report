@@ -17,6 +17,7 @@ import { ServerManager } from './features/servers/ServerManager';
 import { useAppStore } from './store/useAppStore';
 import { useCanvasStore } from './store/useCanvasStore';
 import { useGridStore } from './store/useGridStore';
+import { Database } from 'lucide-react';
 import { getQueries, getQuery } from './services/api';
 
 export const App = () => {
@@ -29,7 +30,7 @@ export const App = () => {
     initTheme,
   } = useAppStore();
   const { loadQueryDefinition } = useCanvasStore();
-  const { viewMode } = useGridStore();
+  const { viewMode, rowData, setViewMode } = useGridStore();
 
   useEffect(() => {
     initTheme();
@@ -89,14 +90,27 @@ export const App = () => {
                   viewMode === 'canvas'
                     ? 'flex-1 h-full'
                     : viewMode === 'split'
-                    ? 'flex-1 min-h-[260px] border-b border-slate-200 dark:border-slate-800'
+                    ? 'flex-1 min-h-0'
                     : 'hidden'
                 }`}
               >
-                <div className="flex-1 relative">
+                <div className="flex-1 relative h-full">
                   <VisualCanvas />
+                  <AbapValidatorPanel />
+
+                  {/* Floating button when ALV has data and user is in Canvas Full view */}
+                  {rowData.length > 0 && viewMode === 'canvas' && (
+                    <div className="absolute bottom-4 left-1/2 -translate-x-1/2 z-20">
+                      <button
+                        onClick={() => setViewMode('split')}
+                        className="flex items-center gap-2 px-4 py-2 rounded-xl bg-gradient-to-r from-sky-600 to-indigo-600 hover:from-sky-500 hover:to-indigo-500 text-white text-xs font-bold shadow-xl shadow-sky-900/20 border border-sky-400/30 transition transform hover:-translate-y-0.5 cursor-pointer backdrop-blur-md animate-in fade-in zoom-in-95 duration-200"
+                      >
+                        <Database className="w-4 h-4" />
+                        <span>Buka Hasil ALV Grid ({rowData.length} baris)</span>
+                      </button>
+                    </div>
+                  )}
                 </div>
-                <AbapValidatorPanel />
               </div>
 
               {/* Next-Gen ALV Grid (AG Grid) - Visible only on query execution or when toggled */}
@@ -105,12 +119,12 @@ export const App = () => {
                   viewMode === 'canvas'
                     ? 'hidden'
                     : viewMode === 'split'
-                    ? 'h-[400px] shrink-0 border-t border-slate-200 dark:border-slate-800 shadow-xl z-10'
+                    ? 'flex-1 min-h-0 border-t border-slate-200 dark:border-slate-800 shadow-xl z-10'
                     : 'flex-1 h-full'
                 }`}
               >
                 <ExportToolbar />
-                <div className="flex-1 relative">
+                <div className="flex-1 relative min-h-0">
                   <AlvGrid />
                 </div>
               </div>
