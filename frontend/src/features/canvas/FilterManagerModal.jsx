@@ -1,10 +1,10 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { X, Filter, Plus, Trash2, Check, SlidersHorizontal, Info } from 'lucide-react';
 import { useAppStore } from '../../store/useAppStore';
 import { useCanvasStore } from '../../store/useCanvasStore';
 
 export const FilterManagerModal = () => {
-  const { filterModalOpen, setFilterModalOpen, showNotification } = useAppStore();
+  const { filterModalOpen, setFilterModalOpen, filterTarget, showNotification } = useAppStore();
   const { nodes, filters, addFilter, removeFilter, clearFilters } = useCanvasStore();
 
   const [selectedTable, setSelectedTable] = useState('');
@@ -12,6 +12,11 @@ export const FilterManagerModal = () => {
   const [operator, setOperator] = useState('EQ');
   const [value, setValue] = useState('');
   const [valueTo, setValueTo] = useState('');
+
+  useEffect(() => {
+    if (filterTarget?.table) setSelectedTable(filterTarget.table);
+    if (filterTarget?.field) setSelectedField(filterTarget.field);
+  }, [filterTarget, filterModalOpen]);
 
   if (!filterModalOpen) return null;
 

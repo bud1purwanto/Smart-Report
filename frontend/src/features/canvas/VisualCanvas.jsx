@@ -101,6 +101,28 @@ export const VisualCanvas = () => {
           )}
         </Panel>
 
+        {/* Active Filters Pill Bar (Top Right) */}
+        {filters.length > 0 && (
+          <Panel position="top-right" className="m-3 max-w-lg">
+            <div className="flex items-center gap-1.5 flex-wrap bg-white/95 dark:bg-slate-900/95 border border-amber-300 dark:border-amber-700/80 rounded-2xl p-1.5 px-3 shadow-lg backdrop-blur-md text-[11px]">
+              <span className="font-bold text-amber-700 dark:text-amber-400 flex items-center gap-1">
+                <SlidersHorizontal className="w-3 h-3" />
+                <span>WHERE:</span>
+              </span>
+              {filters.map((f, idx) => (
+                <span
+                  key={idx}
+                  onClick={() => setFilterModalOpen(true)}
+                  className="font-mono text-[10px] bg-amber-50 dark:bg-amber-950/60 border border-amber-200 dark:border-amber-800 text-amber-900 dark:text-amber-200 px-2 py-0.5 rounded-lg cursor-pointer hover:bg-amber-100 dark:hover:bg-amber-900/60 transition shadow-2xs"
+                  title="Klik untuk ubah parameter ini"
+                >
+                  {f.field} {f.operator} '{f.value}'{f.valueTo ? `..${f.valueTo}` : ''}
+                </span>
+              ))}
+            </div>
+          </Panel>
+        )}
+
         {/* Canvas Status Indicator */}
         <Panel position="bottom-left" className="m-3 text-[11px] text-slate-500 dark:text-slate-400 font-mono bg-white/90 dark:bg-slate-900/90 px-3 py-1.5 rounded-xl border border-slate-200 dark:border-slate-800 shadow-2xs backdrop-blur-sm">
           {nodes.length} Tabel · {edges.length} Relasi Join (Auto-Join Aktif)
