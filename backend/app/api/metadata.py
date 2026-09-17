@@ -128,24 +128,14 @@ def suggest_autojoin(
 
     for k_name in keys_a:
         k_upper = k_name.upper()
-        if k_name in fields_b and k_upper != "MANDT":
+        if k_name in fields_b and k_upper != "MANDT" and k_upper not in LOW_PRIORITY_KEYS:
             # Avoid duplicate if already found in foreign key
             if not any(s.source_field == k_name and s.target_field == k_name for s in suggestions):
                 is_key_in_b = fields_b[k_name].keyflag == "X"
                 if is_key_in_b:
-                    if k_upper in HIGH_PRIORITY_KEYS:
-                        conf = 0.99
-                    elif k_upper in LOW_PRIORITY_KEYS:
-                        conf = 0.70
-                    else:
-                        conf = 0.95
+                    conf = 0.99 if k_upper in HIGH_PRIORITY_KEYS else 0.95
                 else:
-                    if k_upper in HIGH_PRIORITY_KEYS:
-                        conf = 0.92
-                    elif k_upper in LOW_PRIORITY_KEYS:
-                        conf = 0.60
-                    else:
-                        conf = 0.85
+                    conf = 0.92 if k_upper in HIGH_PRIORITY_KEYS else 0.85
 
                 suggestions.append(AutoJoinRule(
                     source_table=ta,

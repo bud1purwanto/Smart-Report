@@ -95,29 +95,31 @@ export const useCanvasStore = create((set, get) => ({
         const suggestions = ajRes.data;
         if (suggestions && suggestions.length > 0) {
           const topJoin = suggestions[0];
-          const edgeId = `e_${existingNode.id}_${nodeId}_${topJoin.source_field}`;
-          // Check edge doesn't already exist
-          const exists = newEdges.some(
-            (e) =>
-              (e.source === existingNode.id && e.target === nodeId) ||
-              (e.source === nodeId && e.target === existingNode.id)
-          );
-          if (!exists) {
-            newEdges.push({
-              id: edgeId,
-              source: existingNode.id,
-              target: nodeId,
-              sourceHandle: topJoin.source_field,
-              targetHandle: topJoin.target_field,
-              type: 'smoothstep',
-              animated: true,
-              data: {
-                joinType: topJoin.join_type || 'INNER',
-                sourceField: topJoin.source_field,
-                targetField: topJoin.target_field,
-                description: topJoin.description,
-              },
-            });
+          if (topJoin.confidence >= 0.85) {
+            const edgeId = `e_${existingNode.id}_${nodeId}_${topJoin.source_field}`;
+            // Check edge doesn't already exist
+            const exists = newEdges.some(
+              (e) =>
+                (e.source === existingNode.id && e.target === nodeId) ||
+                (e.source === nodeId && e.target === existingNode.id)
+            );
+            if (!exists) {
+              newEdges.push({
+                id: edgeId,
+                source: existingNode.id,
+                target: nodeId,
+                sourceHandle: topJoin.source_field,
+                targetHandle: topJoin.target_field,
+                type: 'smoothstep',
+                animated: true,
+                data: {
+                  joinType: topJoin.join_type || 'INNER',
+                  sourceField: topJoin.source_field,
+                  targetField: topJoin.target_field,
+                  description: topJoin.description,
+                },
+              });
+            }
           }
         }
       } catch (err) {
