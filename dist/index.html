@@ -1,0 +1,100 @@
+<!doctype html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="theme-color" content="#08111f" />
+  <meta name="description" content="Visual SAP query builder dan report workspace." />
+  <title>Smart SQVI · Query Studio</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <div class="app-shell">
+    <aside class="sidebar" aria-label="Navigasi utama">
+      <a class="brand" href="#" aria-label="Smart SQVI home"><span class="brand-mark">S</span><span>Smart SQVI</span></a>
+      <nav>
+        <button class="nav-item active"><span>⌁</span><b>Query Studio</b></button>
+        <button class="nav-item"><span>▦</span><b>Saved Reports</b><em>12</em></button>
+        <button class="nav-item"><span>⇄</span><b>Compare</b></button>
+        <button class="nav-item"><span>◷</span><b>Schedules</b><em>3</em></button>
+      </nav>
+      <div class="sidebar-bottom">
+        <div class="system-status"><i></i><div><b>System healthy</b><small>3 SAP servers online</small></div></div>
+        <button class="profile"><span>AR</span><div><b>Andi Ramadhan</b><small>SAP Analyst</small></div><span>⋮</span></button>
+      </div>
+    </aside>
+
+    <main>
+      <header class="topbar">
+        <div class="crumb"><span>Query Studio</span><i>/</i><input id="reportName" value="PO Price Variance Analysis" aria-label="Nama laporan" /></div>
+        <div class="top-actions">
+          <button class="icon-btn" id="aiOpen" title="AI Assistant">✦</button>
+          <button class="btn secondary" id="saveVariant">Save variant</button>
+          <button class="btn primary" id="runQuery"><span>▶</span> Run query</button>
+        </div>
+      </header>
+
+      <section class="workspace">
+        <div class="canvas-panel">
+          <div class="panel-head">
+            <div><span class="eyebrow">QUERY CANVAS</span><small>3 tables · 2 joins</small></div>
+            <div class="canvas-tools"><button title="Zoom out">−</button><span>86%</span><button title="Zoom in">＋</button><button title="Fit canvas">⌗</button></div>
+          </div>
+          <div class="canvas" id="canvas">
+            <svg class="connections" viewBox="0 0 900 420" preserveAspectRatio="none" aria-hidden="true">
+              <path d="M292 147 C375 147 356 94 442 94"/><path d="M292 189 C378 189 354 278 442 278"/>
+              <circle cx="292" cy="147" r="4"/><circle cx="442" cy="94" r="4"/><circle cx="292" cy="189" r="4"/><circle cx="442" cy="278" r="4"/>
+            </svg>
+            <article class="table-node node-main" style="left:42px;top:62px">
+              <header><div><span class="sap-icon">T</span><b>EKKO</b></div><small>Purchasing Doc. Header</small><button>⋮</button></header>
+              <ul><li><span class="key">◆</span><b>EBELN</b><em>CHAR 10</em></li><li><span>◈</span>BUKRS<em>CHAR 4</em></li><li><span>◈</span>BSTYP<em>CHAR 1</em></li><li><span>◈</span>LIFNR<em>CHAR 10</em></li></ul>
+              <footer><button>＋ Add field</button><span>8 / 42</span></footer>
+            </article>
+            <article class="table-node" style="left:442px;top:35px">
+              <header><div><span class="sap-icon cyan">T</span><b>EKPO</b></div><small>Purchasing Doc. Item</small><button>⋮</button></header>
+              <ul><li><span class="key">◆</span><b>EBELN</b><em>CHAR 10</em></li><li><span class="key">◆</span><b>EBELP</b><em>NUMC 5</em></li><li><span>◈</span>MATNR<em>CHAR 18</em></li><li><span>◈</span>NETPR<em>CURR 11</em></li></ul>
+              <footer><button>＋ Add field</button><span>11 / 84</span></footer>
+            </article>
+            <article class="table-node" style="left:442px;top:220px">
+              <header><div><span class="sap-icon violet">T</span><b>LFA1</b></div><small>Vendor Master</small><button>⋮</button></header>
+              <ul><li><span class="key">◆</span><b>LIFNR</b><em>CHAR 10</em></li><li><span>◈</span>NAME1<em>CHAR 35</em></li><li><span>◈</span>LAND1<em>CHAR 3</em></li></ul>
+              <footer><button>＋ Add field</button><span>3 / 63</span></footer>
+            </article>
+            <button class="add-table" id="addTable">＋ Add SAP table</button>
+          </div>
+        </div>
+
+        <aside class="config-panel">
+          <div class="tabs"><button class="active">Filters <span>3</span></button><button>Fields <span>12</span></button></div>
+          <div class="config-content">
+            <label class="section-label">SERVER</label>
+            <button class="select-control"><span><i class="status-dot"></i><b>PRD · Production</b></span><small>100</small><span>⌄</span></button>
+            <label class="section-label line">FILTER CONDITIONS <button>＋ Add</button></label>
+            <div class="filter-card"><div><span>EKKO</span><b>BUKRS</b><button>×</button></div><div class="filter-row"><button>Equals⌄</button><input value="1000" /></div></div>
+            <div class="filter-card"><div><span>EKKO</span><b>BEDAT</b><button>×</button></div><div class="filter-row"><button>Between⌄</button><input value="01.08.2026 — 31.08.2026" /></div></div>
+            <div class="filter-card"><div><span>EKPO</span><b>NETPR</b><button>×</button></div><div class="filter-row"><button>Greater than⌄</button><input value="10,000" /></div></div>
+            <div class="logic"><span></span>AND — all conditions must match<span></span></div>
+            <button class="validate" id="validate"><span>✓</span><div><b>Validate query logic</b><small>Check joins with ABAP validator</small></div><span>›</span></button>
+          </div>
+        </aside>
+      </section>
+
+      <section class="results">
+        <div class="results-bar"><div><b>Preview</b><span id="rowCount">2,486 rows</span><small>Executed 12 sec ago · 0.84s</small></div><div><button class="icon-btn">⌕</button><button class="btn secondary" id="compare">⇄ Compare server</button><button class="btn secondary" id="export">⇩ Export</button></div></div>
+        <div class="grid-wrap">
+          <table><thead><tr><th>PO NUMBER ↕</th><th>ITEM</th><th>VENDOR</th><th>MATERIAL</th><th>ORDER QTY</th><th>NET PRICE ↓</th><th>CURRENCY</th><th>PRICE VAR.</th><th></th></tr></thead>
+          <tbody id="gridBody"></tbody></table>
+        </div>
+        <div class="grid-footer"><span><i class="status-dot"></i>Live result from PRD · Client 100</span><span>Showing 1–6 of 2,486 <button>‹</button><button>›</button></span></div>
+      </section>
+    </main>
+  </div>
+
+  <aside class="ai-drawer" id="aiDrawer" aria-hidden="true"><div class="ai-head"><div><span>✦</span><div><b>Query Copilot</b><small>Powered by local AI</small></div></div><button id="aiClose">×</button></div><div class="ai-body"><div class="ai-message">Describe the report you need. I can add SAP tables, joins, and filters to this canvas.</div><div class="suggestions"><button>Show overdue purchase orders</button><button>Compare PO prices by vendor</button></div></div><form id="aiForm"><input id="aiInput" placeholder="Ask Smart SQVI…" aria-label="Pesan untuk AI"/><button>↑</button></form></aside>
+  <div class="toast" id="toast" role="status"></div>
+  <script src="app.js"></script>
+</body>
+</html>
