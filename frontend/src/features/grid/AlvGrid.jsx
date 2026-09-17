@@ -1,10 +1,15 @@
 import React, { useCallback, useRef, useMemo } from 'react';
 import { AgGridReact } from 'ag-grid-react';
+import { ModuleRegistry, AllCommunityModule } from 'ag-grid-community';
 import { useGridStore } from '../../store/useGridStore';
+import { useAppStore } from '../../store/useAppStore';
 import { Play, Database, ShieldAlert } from 'lucide-react';
+
+ModuleRegistry.registerModules([AllCommunityModule]);
 
 export const AlvGrid = () => {
   const gridRef = useRef(null);
+  const { theme } = useAppStore();
   const {
     rowData,
     columnDefs,
@@ -52,7 +57,7 @@ export const AlvGrid = () => {
 
       {/* Grid or Empty State */}
       {rowData.length > 0 ? (
-        <div className="ag-theme-quartz flex-1 w-full">
+        <div className={`${theme === 'dark' ? 'ag-theme-quartz-dark' : 'ag-theme-quartz'} flex-1 w-full`}>
           <AgGridReact
             ref={gridRef}
             rowData={rowData}

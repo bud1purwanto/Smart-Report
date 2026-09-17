@@ -17,7 +17,7 @@ import { ServerManager } from './features/servers/ServerManager';
 import { useAppStore } from './store/useAppStore';
 import { useCanvasStore } from './store/useCanvasStore';
 import { useGridStore } from './store/useGridStore';
-import { getQuery } from './services/api';
+import { getQueries, getQuery } from './services/api';
 
 export const App = () => {
   const {
@@ -25,8 +25,8 @@ export const App = () => {
     loadServers,
     loadSavedQueries,
     setCurrentQuery,
-    initTheme,
     notification,
+    initTheme,
   } = useAppStore();
   const { loadQueryDefinition } = useCanvasStore();
   const { viewMode } = useGridStore();
@@ -35,16 +35,20 @@ export const App = () => {
     initTheme();
     loadServers();
     loadSavedQueries();
-    // Load initial seed query (PO Price Variance Analysis)
+    // Load initial query if available
     const initQuery = async () => {
       try {
-        const res = await getQuery(1);
-        if (res.data && res.data.query_json) {
-          await loadQueryDefinition(res.data.query_json);
-          setCurrentQuery(res.data.id, res.data.name);
+        const res = await getQueries();
+        if (res.data && res.data.length > 0) {
+          const first = res.data[0];
+          const queryRes = await getQuery(first.id);
+          if (queryRes.data && queryRes.data.query_json) {
+            await loadQueryDefinition(queryRes.data.query_json);
+            setCurrentQuery(queryRes.data.id, queryRes.data.name);
+          }
         }
       } catch (e) {
-        console.warn('Could not load initial query:', e);
+        // Silently continue if no queries exist yet
       }
     };
     initQuery();
