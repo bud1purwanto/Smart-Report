@@ -25,6 +25,10 @@
   background: #94a3b8;
 }
 
+::-webkit-scrollbar-corner {
+  background: transparent;
+}
+
 /* React Flow Canvas (Clean Light Theme) */
 .react-flow__background {
   background-color: #f8fafc;
