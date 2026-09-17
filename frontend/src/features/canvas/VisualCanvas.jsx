@@ -73,35 +73,46 @@ export const VisualCanvas = () => {
           className="!bg-white dark:!bg-slate-900 !border-slate-200 dark:!border-slate-800 rounded-xl shadow-md"
         />
 
-        {/* Top Floating Controls (Only shown if nodes exist for Join summary or reset) */}
-        {nodes.length > 0 && (
-          <Panel position="top-left" className="flex items-center gap-2 m-3">
-            <button
-              onClick={() => setJoinModalOpen(true, null)}
-              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl border text-xs font-semibold shadow-xs backdrop-blur-sm transition cursor-pointer ${
-                edges.length > 0
-                  ? 'bg-sky-50/95 dark:bg-sky-950/80 border-sky-300 dark:border-sky-700 text-sky-800 dark:text-sky-300'
-                  : 'bg-white/95 dark:bg-slate-900/90 hover:bg-slate-50 dark:hover:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-200'
-              }`}
-              title={t('join.modalTitle')}
-            >
-              <GitFork className="w-3.5 h-3.5 text-sky-600 dark:text-sky-400" />
-              <span>{t('canvas.joins')}</span>
-              {edges.length > 0 && (
-                <span className="bg-sky-600 text-white text-[10px] font-bold px-1.5 py-0.2 rounded-full">
-                  {edges.length}
-                </span>
-              )}
-            </button>
-            <button
-              onClick={clearCanvas}
-              className="flex items-center gap-1 px-2.5 py-1.5 rounded-xl bg-white/90 dark:bg-slate-900/90 hover:bg-red-50 dark:hover:bg-red-950/50 border border-slate-200 dark:border-slate-700 hover:border-red-200 dark:hover:border-red-800 text-slate-500 dark:text-slate-400 hover:text-red-600 dark:hover:text-red-400 text-xs shadow-xs transition cursor-pointer"
-              title={t('canvas.resetCanvas')}
-            >
-              <Trash2 className="w-3.5 h-3.5" />
-            </button>
-          </Panel>
-        )}
+        {/* Top Floating Action Panel */}
+        <Panel position="top-left" className="flex items-center gap-2 m-3">
+          <button
+            onClick={() => setTableCatalogOpen(true)}
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white/95 dark:bg-slate-900/90 hover:bg-slate-50 dark:hover:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-200 text-xs font-semibold shadow-xs backdrop-blur-sm transition cursor-pointer"
+          >
+            <Plus className="w-3.5 h-3.5 text-sky-600 dark:text-sky-400" />
+            <span>{t('nav.addTable')}</span>
+          </button>
+
+          {nodes.length > 0 && (
+            <>
+              <button
+                onClick={() => setJoinModalOpen(true, null)}
+                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl border text-xs font-semibold shadow-xs backdrop-blur-sm transition cursor-pointer ${
+                  edges.length > 0
+                    ? 'bg-sky-50/95 dark:bg-sky-950/80 border-sky-300 dark:border-sky-700 text-sky-800 dark:text-sky-300'
+                    : 'bg-white/95 dark:bg-slate-900/90 hover:bg-slate-50 dark:hover:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-200'
+                }`}
+                title={t('join.modalTitle')}
+              >
+                <GitFork className="w-3.5 h-3.5 text-sky-600 dark:text-sky-400" />
+                <span>{t('canvas.joins')}</span>
+                {edges.length > 0 && (
+                  <span className="bg-sky-600 text-white text-[10px] font-bold px-1.5 py-0.2 rounded-full">
+                    {edges.length}
+                  </span>
+                )}
+              </button>
+
+              <button
+                onClick={clearCanvas}
+                className="flex items-center gap-1 px-2.5 py-1.5 rounded-xl bg-white/90 dark:bg-slate-900/90 hover:bg-red-50 dark:hover:bg-red-950/50 border border-slate-200 dark:border-slate-700 hover:border-red-200 dark:hover:border-red-800 text-slate-500 dark:text-slate-400 hover:text-red-600 dark:hover:text-red-400 text-xs shadow-xs transition cursor-pointer"
+                title={t('canvas.resetCanvas')}
+              >
+                <Trash2 className="w-3.5 h-3.5" />
+              </button>
+            </>
+          )}
+        </Panel>
 
         {/* Pending Connection Banner */}
         {pendingConnection && (
