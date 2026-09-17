@@ -92,8 +92,9 @@ export const CompareTableNode = memo(({ id, data }) => {
                 type="target"
                 position={Position.Left}
                 id={field.fieldname}
-                className="!bg-purple-500 !w-2.5 !h-2.5 !border-white dark:!border-slate-900"
+                className="!bg-purple-500 hover:!bg-amber-400 hover:!scale-150 !w-2.5 !h-2.5 !border-white dark:!border-slate-900 transition-all cursor-crosshair"
                 style={{ left: '-5px' }}
+                title={`Tarik garis relasi join dari/ke kolom ${field.fieldname}`}
               />
 
               <div
@@ -129,8 +130,9 @@ export const CompareTableNode = memo(({ id, data }) => {
                 type="source"
                 position={Position.Right}
                 id={field.fieldname}
-                className="!bg-purple-500 !w-2.5 !h-2.5 !border-white dark:!border-slate-900"
+                className="!bg-purple-500 hover:!bg-amber-400 hover:!scale-150 !w-2.5 !h-2.5 !border-white dark:!border-slate-900 transition-all cursor-crosshair"
                 style={{ right: '-5px' }}
+                title={`Tarik garis relasi join dari/ke kolom ${field.fieldname}`}
               />
             </div>
           );

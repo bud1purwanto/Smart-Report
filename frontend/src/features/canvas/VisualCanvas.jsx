@@ -47,6 +47,7 @@ export const VisualCanvas = () => {
         onConnect={onConnect}
         onEdgeClick={onEdgeClick}
         nodeTypes={nodeTypes}
+        connectionMode="loose"
         fitView
         className="bg-slate-50 dark:bg-slate-950"
       >
