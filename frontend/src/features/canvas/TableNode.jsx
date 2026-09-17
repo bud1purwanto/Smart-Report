@@ -139,7 +139,7 @@ export const TableNode = memo(({ id, data }) => {
           return (
             <div
               key={field.fieldname}
-              className={`relative pl-6 pr-6 py-1.5 flex items-center justify-between group transition ${
+              className={`relative pl-3.5 pr-3.5 py-1.5 flex items-center justify-between group transition ${
                 isPendingSource
                   ? 'bg-amber-100 dark:bg-amber-950/80 ring-2 ring-amber-400 font-bold'
                   : isPendingTarget
@@ -154,9 +154,9 @@ export const TableNode = memo(({ id, data }) => {
                 type="target"
                 position={Position.Left}
                 id={field.fieldname}
-                className="!w-3 !h-3 !rounded-full !bg-sky-500 hover:!bg-amber-400 hover:!scale-150 !border-2 !border-white dark:!border-slate-900 transition-all cursor-crosshair shadow-sm z-20"
-                style={{ left: '6px', top: '50%', transform: 'translateY(-50%)' }}
-                title={`Tarik garis relasi join (Drag & Drop) dari/ke ${field.fieldname}`}
+                className="!w-2.5 !h-2.5 !rounded-full !bg-sky-500 hover:!bg-amber-400 hover:!scale-150 !border-2 !border-white dark:!border-slate-900 transition-all cursor-crosshair shadow-sm z-20 opacity-0 group-hover:opacity-100"
+                style={{ left: '-1px', top: '50%', transform: 'translateY(-50%)' }}
+                title={`Tarik relasi join ke ${field.fieldname}`}
                 onClick={handleLinkClick}
               />
 
@@ -224,9 +224,9 @@ export const TableNode = memo(({ id, data }) => {
                 type="source"
                 position={Position.Right}
                 id={field.fieldname}
-                className="!w-3 !h-3 !rounded-full !bg-sky-500 hover:!bg-amber-400 hover:!scale-150 !border-2 !border-white dark:!border-slate-900 transition-all cursor-crosshair shadow-sm z-20"
-                style={{ right: '6px', top: '50%', transform: 'translateY(-50%)' }}
-                title={`Tarik garis relasi join (Drag & Drop) dari/ke ${field.fieldname}`}
+                className="!w-2.5 !h-2.5 !rounded-full !bg-sky-500 hover:!bg-amber-400 hover:!scale-150 !border-2 !border-white dark:!border-slate-900 transition-all cursor-crosshair shadow-sm z-20 opacity-0 group-hover:opacity-100"
+                style={{ right: '-1px', top: '50%', transform: 'translateY(-50%)' }}
+                title={`Tarik relasi join dari ${field.fieldname}`}
                 onClick={handleLinkClick}
               />
             </div>

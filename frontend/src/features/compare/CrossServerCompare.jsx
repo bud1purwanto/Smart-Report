@@ -199,7 +199,7 @@ export const CrossServerCompare = () => {
           compareViewMode === 'canvas'
             ? 'flex-1 h-full'
             : compareViewMode === 'split'
-            ? 'h-[320px] shrink-0 border-b border-slate-200 dark:border-slate-800'
+            ? 'flex-1 min-h-[380px] border-b border-slate-200 dark:border-slate-800'
             : 'hidden'
         }`}
       >
@@ -222,7 +222,7 @@ export const CrossServerCompare = () => {
       {/* Results Viewport (Summary Cards + Tabs + Diff Table) - Revealed on query run */}
       {(compareResult || isComparing) && compareViewMode !== 'canvas' && (
         <div className={`flex flex-col overflow-hidden bg-slate-50 dark:bg-slate-950 ${
-          compareViewMode === 'results' ? 'flex-1 h-full' : 'flex-1 overflow-auto'
+          compareViewMode === 'results' ? 'flex-1 h-full' : 'flex-1 min-h-[320px] overflow-auto'
         }`}>
           {/* Summary Cards */}
           {summary && (
