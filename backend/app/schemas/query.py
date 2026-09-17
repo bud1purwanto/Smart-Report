@@ -23,9 +23,11 @@ class FieldSelectionItem(BaseModel):
     alias: Optional[str] = None
     datatype: Optional[str] = None
     isKey: Optional[bool] = False
+    fieldtext: Optional[str] = None
 
 class FilterItem(BaseModel):
     field: str # e.g. "EKKO.BSART"
+    fieldtext: Optional[str] = None
     operator: str = "EQ" # EQ, NE, GT, LT, GE, LE, LIKE, IN, BETWEEN
     value: Any
     valueTo: Optional[Any] = None

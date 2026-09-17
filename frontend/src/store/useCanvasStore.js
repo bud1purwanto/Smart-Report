@@ -78,6 +78,7 @@ export const useCanvasStore = create((set, get) => ({
         tableId: nodeId,
         table: tableUpper,
         field: f.fieldname,
+        fieldtext: f.fieldtext || '',
         alias: `${tableUpper}_${f.fieldname}`,
         datatype: f.datatype,
         isKey: true,
@@ -150,7 +151,7 @@ export const useCanvasStore = create((set, get) => ({
     });
   },
 
-  toggleFieldSelection: (tableId, table, field, isKey = false, datatype = 'CHAR') => {
+  toggleFieldSelection: (tableId, table, field, isKey = false, datatype = 'CHAR', fieldtext = '') => {
     const { selectedFields } = get();
     const index = selectedFields.findIndex((f) => f.tableId === tableId && f.field === field);
     if (index >= 0) {
@@ -163,6 +164,7 @@ export const useCanvasStore = create((set, get) => ({
             tableId,
             table,
             field,
+            fieldtext,
             alias: `${table}_${field}`,
             datatype,
             isKey,

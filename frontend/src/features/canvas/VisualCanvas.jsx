@@ -114,9 +114,9 @@ export const VisualCanvas = () => {
                   key={idx}
                   onClick={() => setFilterModalOpen(true)}
                   className="font-mono text-[10px] bg-amber-50 dark:bg-amber-950/60 border border-amber-200 dark:border-amber-800 text-amber-900 dark:text-amber-200 px-2 py-0.5 rounded-lg cursor-pointer hover:bg-amber-100 dark:hover:bg-amber-900/60 transition shadow-2xs"
-                  title="Klik untuk ubah parameter ini"
+                  title={`${f.field}${f.fieldtext ? ` (${f.fieldtext})` : ''}: Klik untuk ubah parameter ini`}
                 >
-                  {f.field} {f.operator} '{f.value}'{f.valueTo ? `..${f.valueTo}` : ''}
+                  {f.field}{f.fieldtext ? ` (${f.fieldtext})` : ''} {f.operator} '{f.value}'{f.valueTo ? `..${f.valueTo}` : ''}
                 </span>
               ))}
             </div>

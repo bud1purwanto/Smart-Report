@@ -43,25 +43,37 @@ export const JoinModal = () => {
         </div>
 
         {/* Join Fields Info */}
-        <div className="bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 rounded-xl p-3.5 space-y-2 text-xs">
-          <div className="flex justify-between items-center text-slate-600 dark:text-slate-400">
-            <span>Tabel Sumber:</span>
-            <span className="font-mono font-bold text-slate-900 dark:text-slate-100">{sourceNode?.data.table}</span>
-          </div>
-          <div className="flex justify-between items-center text-slate-600 dark:text-slate-400">
-            <span>Field Sumber:</span>
-            <span className="font-mono text-sky-700 dark:text-sky-400 font-bold">{joinData.sourceField || activeEdgeForEdit.sourceHandle}</span>
-          </div>
-          <div className="border-t border-slate-200 dark:border-slate-700 my-1"></div>
-          <div className="flex justify-between items-center text-slate-600 dark:text-slate-400">
-            <span>Tabel Tujuan:</span>
-            <span className="font-mono font-bold text-slate-900 dark:text-slate-100">{targetNode?.data.table}</span>
-          </div>
-          <div className="flex justify-between items-center text-slate-600 dark:text-slate-400">
-            <span>Field Tujuan:</span>
-            <span className="font-mono text-sky-700 dark:text-sky-400 font-bold">{joinData.targetField || activeEdgeForEdit.targetHandle}</span>
-          </div>
-        </div>
+        {(() => {
+          const srcFieldName = joinData.sourceField || activeEdgeForEdit.sourceHandle;
+          const tgtFieldName = joinData.targetField || activeEdgeForEdit.targetHandle;
+          const srcFieldObj = sourceNode?.data?.fields?.find((f) => f.fieldname === srcFieldName);
+          const tgtFieldObj = targetNode?.data?.fields?.find((f) => f.fieldname === tgtFieldName);
+          return (
+            <div className="bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 rounded-xl p-3.5 space-y-2 text-xs">
+              <div className="flex justify-between items-center text-slate-600 dark:text-slate-400">
+                <span>Tabel Sumber:</span>
+                <span className="font-mono font-bold text-slate-900 dark:text-slate-100">{sourceNode?.data.table}</span>
+              </div>
+              <div className="flex justify-between items-center text-slate-600 dark:text-slate-400">
+                <span>Field Sumber:</span>
+                <span className="font-mono text-sky-700 dark:text-sky-400 font-bold">
+                  {srcFieldName} {srcFieldObj?.fieldtext && srcFieldObj.fieldtext !== srcFieldName ? `(${srcFieldObj.fieldtext})` : ''}
+                </span>
+              </div>
+              <div className="border-t border-slate-200 dark:border-slate-700 my-1"></div>
+              <div className="flex justify-between items-center text-slate-600 dark:text-slate-400">
+                <span>Tabel Tujuan:</span>
+                <span className="font-mono font-bold text-slate-900 dark:text-slate-100">{targetNode?.data.table}</span>
+              </div>
+              <div className="flex justify-between items-center text-slate-600 dark:text-slate-400">
+                <span>Field Tujuan:</span>
+                <span className="font-mono text-sky-700 dark:text-sky-400 font-bold">
+                  {tgtFieldName} {tgtFieldObj?.fieldtext && tgtFieldObj.fieldtext !== tgtFieldName ? `(${tgtFieldObj.fieldtext})` : ''}
+                </span>
+              </div>
+            </div>
+          );
+        })()}
 
         {/* Join Type Selector */}
         <div className="space-y-2">

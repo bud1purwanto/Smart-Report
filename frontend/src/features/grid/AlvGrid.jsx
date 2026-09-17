@@ -29,15 +29,12 @@ export const AlvGrid = () => {
   );
 
   const formattedColumnDefs = useMemo(() => {
-    return (columnDefs || []).map((col) => {
-      const hName = col.headerName || col.field || '';
-      return {
-        ...col,
-        headerName: hName.includes(' ') ? hName.replace(/\s+/, ' • ') : hName,
-        flex: col.flex || 1,
-        minWidth: col.minWidth || 130,
-      };
-    });
+    return (columnDefs || []).map((col) => ({
+      ...col,
+      headerName: col.headerName || col.field || '',
+      flex: col.flex || 1,
+      minWidth: col.minWidth || 140,
+    }));
   }, [columnDefs]);
 
   // Track column reordering (RULE 2 COMPLIANCE)

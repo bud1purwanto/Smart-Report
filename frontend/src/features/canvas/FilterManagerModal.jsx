@@ -40,8 +40,10 @@ export const FilterManagerModal = () => {
       return;
     }
 
+    const activeFieldObj = fields.find((f) => f.fieldname === fld);
     const newFilter = {
       field: `${tbl}.${fld}`,
+      fieldtext: activeFieldObj?.fieldtext && activeFieldObj.fieldtext !== fld ? activeFieldObj.fieldtext : '',
       operator,
       value: value.trim(),
       valueTo: operator === 'BETWEEN' ? valueTo.trim() : undefined,
@@ -140,7 +142,7 @@ export const FilterManagerModal = () => {
                     >
                       {fields.map((f) => (
                         <option key={f.fieldname} value={f.fieldname}>
-                          {f.fieldname} {f.fieldtext ? `(${f.fieldtext})` : ''}
+                          {f.fieldname} {f.fieldtext && f.fieldtext !== f.fieldname ? `— ${f.fieldtext}` : ''}
                         </option>
                       ))}
                     </select>
@@ -239,10 +241,15 @@ export const FilterManagerModal = () => {
                   key={idx}
                   className="p-2.5 flex items-center justify-between text-xs hover:bg-slate-50/80 dark:hover:bg-slate-800/60 transition"
                 >
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-2 flex-wrap">
                     <span className="font-mono font-bold text-sky-700 dark:text-sky-300 bg-sky-50 dark:bg-sky-950/50 px-2 py-0.5 rounded border border-sky-200 dark:border-sky-800">
                       {f.field}
                     </span>
+                    {f.fieldtext && (
+                      <span className="text-[11px] text-slate-500 dark:text-slate-400 font-sans truncate max-w-[200px]" title={f.fieldtext}>
+                        ({f.fieldtext})
+                      </span>
+                    )}
                     <span className="font-mono font-black text-amber-700 dark:text-amber-400 text-[11px]">
                       {f.operator}
                     </span>

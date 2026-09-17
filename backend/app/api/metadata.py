@@ -154,6 +154,24 @@ async def sync_table_metadata_from_sap(
     if not rows:
         raise HTTPException(status_code=404, detail=f"No fields found for table {tbl} in SAP DD03L")
 
+    # 2. Read DD03M (field descriptions in English)
+    text_map = {}
+    try:
+        dd03m_res = await sap_gateway.read_table(
+            server_profile=server,
+            table="DD03M",
+            fields=["FIELDNAME", "DDLANGUAGE", "DDTEXT", "SCRTEXT_M"],
+            where=[f"TABNAME = '{tbl}' AND DDLANGUAGE = 'E'"],
+            rowcount=500
+        )
+        for mr in dd03m_res.get("rows", []):
+            m_fn = mr.get("FIELDNAME", "").strip()
+            txt = mr.get("DDTEXT", "").strip() or mr.get("SCRTEXT_M", "").strip()
+            if m_fn and txt:
+                text_map[m_fn] = txt
+    except Exception as txt_err:
+        pass
+
     synced_count = 0
     for r in rows:
         fn = r.get("FIELDNAME", "").strip()
@@ -163,6 +181,8 @@ async def sync_table_metadata_from_sap(
             leng_val = int(r.get("LENG", 0))
         except ValueError:
             leng_val = 0
+
+        desc = text_map.get(fn) or fn
 
         existing = db.query(SapMetadataSync).filter(
             SapMetadataSync.tablename == tbl,
@@ -175,6 +195,8 @@ async def sync_table_metadata_from_sap(
             existing.leng = leng_val
             existing.rollname = r.get("ROLLNAME", "").strip()
             existing.checktable = r.get("CHECKTABLE", "").strip() or None
+            if desc and desc != fn:
+                existing.fieldtext = desc
         else:
             item = SapMetadataSync(
                 tablename=tbl,
@@ -184,7 +206,7 @@ async def sync_table_metadata_from_sap(
                 leng=leng_val,
                 rollname=r.get("ROLLNAME", "").strip(),
                 checktable=r.get("CHECKTABLE", "").strip() or None,
-                fieldtext=fn
+                fieldtext=desc
             )
             db.add(item)
         synced_count += 1

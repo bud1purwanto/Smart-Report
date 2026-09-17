@@ -139,10 +139,62 @@ async def execute_query(req: QueryExecuteRequest, db: Session = Depends(get_db))
     for col in columns:
         # Match field alias/datatype if present
         sf_match = next((sf for sf in selected_fields if sf.field.upper() == col.upper() or (sf.alias and sf.alias.upper() == col.upper())), None)
-        header_name = sf_match.alias if sf_match and sf_match.alias else col
+        desc = ""
+        if sf_match:
+            meta = db.query(SapMetadataSync).filter(
+                SapMetadataSync.tablename == sf_match.table.upper(),
+                SapMetadataSync.fieldname == sf_match.field.upper()
+            ).first()
+            if meta and meta.fieldtext and meta.fieldtext != meta.fieldname:
+                desc = meta.fieldtext
+            elif getattr(sf_match, "fieldtext", None):
+                desc = sf_match.fieldtext
+
+        if not desc:
+            # Check if col is in format TABLE_FIELD or FIELD_TABLE
+            if "_" in col:
+                parts = col.split("_", 1)
+                meta = db.query(SapMetadataSync).filter(
+                    SapMetadataSync.tablename == parts[0].upper(),
+                    SapMetadataSync.fieldname == parts[1].upper()
+                ).first()
+                if not meta:
+                    parts_r = col.rsplit("_", 1)
+                    meta = db.query(SapMetadataSync).filter(
+                        SapMetadataSync.tablename == parts_r[1].upper(),
+                        SapMetadataSync.fieldname == parts_r[0].upper()
+                    ).first()
+                if meta and meta.fieldtext and meta.fieldtext != meta.fieldname:
+                    desc = meta.fieldtext
+
+            if not desc:
+                # Try finding any table in query that has this fieldname
+                query_tables = [t.table.upper() for t in query.tables]
+                if query_tables:
+                    meta = db.query(SapMetadataSync).filter(
+                        SapMetadataSync.tablename.in_(query_tables),
+                        SapMetadataSync.fieldname == col.upper()
+                    ).first()
+                    if meta and meta.fieldtext and meta.fieldtext != meta.fieldname:
+                        desc = meta.fieldtext
+                if not desc:
+                    meta = db.query(SapMetadataSync).filter(
+                        SapMetadataSync.fieldname == col.upper()
+                    ).first()
+                    if meta and meta.fieldtext and meta.fieldtext != meta.fieldname:
+                        desc = meta.fieldtext
+
+        if desc:
+            header_name = f"{desc} ({col})"
+        elif sf_match and sf_match.alias:
+            header_name = sf_match.alias
+        else:
+            header_name = col
+
         column_defs.append({
             "field": col,
             "headerName": header_name,
+            "headerTooltip": f"{col} - {desc}" if desc else col,
             "sortable": True,
             "filter": True,
             "resizable": True

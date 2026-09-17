@@ -31,5 +31,6 @@ yarn-debug.log*
 # OS & IDE
 .DS_Store
 Thumbs.db
-.vscode/
-.idea/
+# Database
+*.db
+*.sqlite3

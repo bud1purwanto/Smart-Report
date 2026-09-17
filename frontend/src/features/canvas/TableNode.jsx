@@ -103,7 +103,7 @@ export const TableNode = memo(({ id, data }) => {
 
               <div
                 className="flex items-center gap-2 cursor-pointer select-none overflow-hidden flex-1 min-w-0 mr-2"
-                onClick={() => toggleFieldSelection(id, table, field.fieldname, isKey, field.datatype)}
+                onClick={() => toggleFieldSelection(id, table, field.fieldname, isKey, field.datatype, field.fieldtext || '')}
                 title={fullLabel}
               >
                 {isSelected ? (
@@ -114,9 +114,14 @@ export const TableNode = memo(({ id, data }) => {
 
                 <div className="flex items-center gap-1.5 truncate min-w-0">
                   {isKey && <Key className="w-3.5 h-3.5 text-amber-500 shrink-0" />}
-                  <span className={`font-mono text-xs truncate ${isKey ? 'font-bold text-amber-800 dark:text-amber-400' : ''}`}>
+                  <span className={`font-mono text-xs shrink-0 ${isKey ? 'font-bold text-amber-800 dark:text-amber-400' : ''}`}>
                     {field.fieldname}
                   </span>
+                  {field.fieldtext && field.fieldtext !== field.fieldname && (
+                    <span className="text-[10.5px] text-slate-400 dark:text-slate-500 truncate font-sans font-normal ml-0.5" title={field.fieldtext}>
+                      {field.fieldtext}
+                    </span>
+                  )}
                 </div>
               </div>
 
