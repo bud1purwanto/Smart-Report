@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import {
   Play, Sparkles, Plus, Save, Server, FolderKanban,
-  FilePlus2, ChevronDown, Check, Trash2
+  FilePlus2, ChevronDown, Check, Trash2, Sun, Moon
 } from 'lucide-react';
 import { useAppStore } from '../store/useAppStore';
 import { useCanvasStore } from '../store/useCanvasStore';
@@ -22,6 +22,8 @@ export const Navbar = () => {
     selectProject,
     setAiModalOpen,
     setTableCatalogOpen,
+    theme,
+    toggleTheme,
     showNotification,
   } = useAppStore();
 
@@ -103,27 +105,27 @@ export const Navbar = () => {
   };
 
   return (
-    <header className="h-14 border-b border-slate-200/80 bg-white/95 backdrop-blur-md px-4 flex items-center justify-between z-30 shrink-0 shadow-xs">
+    <header className="h-14 border-b border-slate-200/80 dark:border-slate-800 bg-white/95 dark:bg-slate-900/95 backdrop-blur-md px-4 flex items-center justify-between z-30 shrink-0 shadow-xs transition-colors duration-200">
       {/* Brand & Project Selector */}
       <div className="flex items-center gap-3">
-        <div className="flex items-center gap-2 font-extrabold text-sm tracking-tight text-slate-900">
+        <div className="flex items-center gap-2 font-extrabold text-sm tracking-tight text-slate-900 dark:text-slate-100">
           <span className="w-8 h-8 rounded-lg bg-sky-600 text-white flex items-center justify-center font-mono text-xs shadow-sm">
             SQ
           </span>
-          <span className="bg-gradient-to-r from-sky-700 to-indigo-700 bg-clip-text text-transparent font-black tracking-tight text-base">
+          <span className="bg-gradient-to-r from-sky-700 to-indigo-700 dark:from-sky-400 dark:to-indigo-400 bg-clip-text text-transparent font-black tracking-tight text-base">
             SMART SQVI
           </span>
         </div>
 
-        <span className="text-slate-300">/</span>
+        <span className="text-slate-300 dark:text-slate-700">/</span>
 
         {/* Project Selector Dropdown (PER PROJECT SQVI) */}
         <div className="relative">
           <button
             onClick={() => setProjectDropdownOpen(!projectDropdownOpen)}
-            className="flex items-center gap-2 px-2.5 py-1 rounded-lg border border-slate-200 bg-slate-50 hover:bg-slate-100/80 text-xs font-semibold text-slate-700 transition"
+            className="flex items-center gap-2 px-2.5 py-1 rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 hover:bg-slate-100/80 dark:hover:bg-slate-700 text-xs font-semibold text-slate-700 dark:text-slate-200 transition"
           >
-            <FolderKanban className="w-3.5 h-3.5 text-sky-600" />
+            <FolderKanban className="w-3.5 h-3.5 text-sky-600 dark:text-sky-400" />
             <span className="max-w-[160px] truncate">
               {currentQueryId ? currentQueryName : 'Project Baru (Belum Disimpan)'}
             </span>
@@ -131,8 +133,8 @@ export const Navbar = () => {
           </button>
 
           {projectDropdownOpen && (
-            <div className="absolute left-0 mt-1.5 w-72 bg-white rounded-xl border border-slate-200 shadow-xl py-1.5 z-50 animate-in fade-in zoom-in-95 duration-150">
-              <div className="px-3 py-1.5 border-b border-slate-100 flex items-center justify-between">
+            <div className="absolute left-0 mt-1.5 w-72 bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 shadow-xl py-1.5 z-50 animate-in fade-in zoom-in-95 duration-150">
+              <div className="px-3 py-1.5 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between">
                 <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">
                   Daftar Project SQVI
                 </span>
@@ -141,14 +143,14 @@ export const Navbar = () => {
                     createNewProject();
                     setProjectDropdownOpen(false);
                   }}
-                  className="flex items-center gap-1 text-[11px] font-bold text-sky-600 hover:text-sky-700"
+                  className="flex items-center gap-1 text-[11px] font-bold text-sky-600 dark:text-sky-400 hover:text-sky-700"
                 >
                   <FilePlus2 className="w-3.5 h-3.5" />
                   <span>+ Buat Baru</span>
                 </button>
               </div>
 
-              <div className="max-h-56 overflow-y-auto py-1 divide-y divide-slate-50">
+              <div className="max-h-56 overflow-y-auto py-1 divide-y divide-slate-50 dark:divide-slate-800">
                 {savedQueries.map((q) => {
                   const isCurrent = currentQueryId === q.id;
                   return (
@@ -158,8 +160,8 @@ export const Navbar = () => {
                         selectProject(q.id);
                         setProjectDropdownOpen(false);
                       }}
-                      className={`px-3 py-2 flex items-center justify-between hover:bg-sky-50/60 cursor-pointer text-xs transition ${
-                        isCurrent ? 'bg-sky-50 text-sky-800 font-bold' : 'text-slate-700'
+                      className={`px-3 py-2 flex items-center justify-between hover:bg-sky-50/60 dark:hover:bg-slate-800 cursor-pointer text-xs transition ${
+                        isCurrent ? 'bg-sky-50 dark:bg-sky-950/40 text-sky-800 dark:text-sky-300 font-bold' : 'text-slate-700 dark:text-slate-300'
                       }`}
                     >
                       <div className="truncate mr-2">
@@ -169,7 +171,7 @@ export const Navbar = () => {
                         </div>
                       </div>
                       <div className="flex items-center gap-1.5 shrink-0">
-                        {isCurrent && <Check className="w-3.5 h-3.5 text-sky-600" />}
+                        {isCurrent && <Check className="w-3.5 h-3.5 text-sky-600 dark:text-sky-400" />}
                         <button
                           onClick={(e) => handleDeleteProject(q.id, e)}
                           className="text-slate-400 hover:text-red-500 p-1 rounded transition"
@@ -194,7 +196,7 @@ export const Navbar = () => {
           type="text"
           value={currentQueryName}
           onChange={(e) => setCurrentQuery(currentQueryId, e.target.value)}
-          className="bg-slate-100/70 hover:bg-slate-100 border border-slate-200/80 focus:border-sky-500 rounded-lg px-2.5 py-1 text-xs text-slate-800 focus:outline-none w-60 transition font-medium focus:bg-white"
+          className="bg-slate-100/70 dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-750 border border-slate-200/80 dark:border-slate-700 focus:border-sky-500 rounded-lg px-2.5 py-1 text-xs text-slate-800 dark:text-slate-100 focus:outline-none w-60 transition font-medium focus:bg-white dark:focus:bg-slate-900"
           placeholder="Nama Laporan SAP..."
         />
       </div>
@@ -202,63 +204,82 @@ export const Navbar = () => {
       {/* Right Actions */}
       <div className="flex items-center gap-2">
         {/* Active Server Dropdown */}
-        <div className="flex items-center gap-2 bg-slate-50 border border-slate-200 rounded-lg px-2.5 py-1">
-          <Server className="w-3.5 h-3.5 text-sky-600" />
+        <div className="flex items-center gap-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg px-2.5 py-1">
+          <Server className="w-3.5 h-3.5 text-sky-600 dark:text-sky-400" />
           <select
             value={activeServer?.id || ''}
             onChange={(e) => {
               const s = servers.find((srv) => srv.id === parseInt(e.target.value));
               if (s) setActiveServer(s);
             }}
-            className="bg-transparent text-xs text-slate-800 focus:outline-none font-semibold cursor-pointer"
+            className="bg-transparent text-xs text-slate-800 dark:text-slate-200 focus:outline-none font-semibold cursor-pointer"
           >
             {servers.map((s) => (
-              <option key={s.id} value={s.id} className="bg-white text-slate-800">
+              <option key={s.id} value={s.id} className="bg-white dark:bg-slate-900 text-slate-800 dark:text-slate-200">
                 {s.name} ({s.sid})
               </option>
             ))}
           </select>
           {activeServer?.environment === 'production' && (
-            <span className="text-[10px] bg-red-100 text-red-700 border border-red-200 px-1.5 py-0.2 rounded font-mono font-bold">
+            <span className="text-[10px] bg-red-100 dark:bg-red-950/60 text-red-700 dark:text-red-400 border border-red-200 dark:border-red-800 px-1.5 py-0.2 rounded font-mono font-bold">
               PRD
             </span>
           )}
         </div>
 
+        {/* Light / Dark Mode Toggle Button */}
+        <button
+          onClick={toggleTheme}
+          className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 text-xs font-semibold transition shadow-2xs cursor-pointer"
+          title={theme === 'dark' ? 'Beralih ke Light Mode ☀️' : 'Beralih ke Dark Mode 🌙'}
+        >
+          {theme === 'dark' ? (
+            <>
+              <Sun className="w-3.5 h-3.5 text-amber-400 fill-amber-400/30" />
+              <span className="hidden sm:inline">Light</span>
+            </>
+          ) : (
+            <>
+              <Moon className="w-3.5 h-3.5 text-slate-600" />
+              <span className="hidden sm:inline">Dark</span>
+            </>
+          )}
+        </button>
+
         {/* New Query / Clear Canvas Button (Per Project SQVI) */}
         <button
           onClick={createNewProject}
-          className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-slate-100 hover:bg-slate-200/80 text-slate-700 text-xs font-semibold border border-slate-200 transition"
+          className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-slate-100 dark:bg-slate-800 hover:bg-slate-200/80 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 text-xs font-semibold border border-slate-200 dark:border-slate-700 transition"
           title="Kosongkan kanvas untuk membuat query baru"
         >
-          <FilePlus2 className="w-3.5 h-3.5 text-slate-600" />
+          <FilePlus2 className="w-3.5 h-3.5 text-slate-600 dark:text-slate-400" />
           <span>New Query</span>
         </button>
 
         {/* AI Assistant Button */}
         <button
           onClick={() => setAiModalOpen(true)}
-          className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-gradient-to-r from-purple-50 to-indigo-50 hover:from-purple-100 hover:to-indigo-100 border border-indigo-200 text-indigo-700 text-xs font-bold shadow-2xs transition"
+          className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-gradient-to-r from-purple-50 to-indigo-50 dark:from-purple-950/40 dark:to-indigo-950/40 hover:from-purple-100 hover:to-indigo-100 dark:hover:from-purple-900/40 dark:hover:to-indigo-900/40 border border-indigo-200 dark:border-indigo-800 text-indigo-700 dark:text-indigo-300 text-xs font-bold shadow-2xs transition"
         >
-          <Sparkles className="w-3.5 h-3.5 text-indigo-600" />
+          <Sparkles className="w-3.5 h-3.5 text-indigo-600 dark:text-indigo-400" />
           <span>AI Assistant</span>
         </button>
 
         {/* Add Table Button */}
         <button
           onClick={() => setTableCatalogOpen(true)}
-          className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-slate-50 hover:bg-slate-100 border border-slate-200 text-slate-700 text-xs font-semibold transition"
+          className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-slate-50 dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-200 text-xs font-semibold transition"
         >
-          <Plus className="w-3.5 h-3.5 text-sky-600" />
+          <Plus className="w-3.5 h-3.5 text-sky-600 dark:text-sky-400" />
           <span>Tambah Tabel</span>
         </button>
 
         {/* Save Query Button */}
         <button
           onClick={handleSaveQuery}
-          className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-slate-50 hover:bg-slate-100 border border-slate-200 text-slate-700 text-xs font-semibold transition"
+          className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-slate-50 dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-200 text-xs font-semibold transition"
         >
-          <Save className="w-3.5 h-3.5 text-slate-600" />
+          <Save className="w-3.5 h-3.5 text-slate-600 dark:text-slate-400" />
           <span>Simpan</span>
         </button>
 

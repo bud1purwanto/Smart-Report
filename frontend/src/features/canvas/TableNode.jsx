@@ -33,23 +33,23 @@ export const TableNode = memo(({ id, data }) => {
   };
 
   return (
-    <div className="w-68 rounded-2xl border border-slate-200/90 bg-white shadow-lg shadow-slate-200/40 overflow-hidden font-sans transition-all duration-150 hover:border-sky-300">
+    <div className="w-68 rounded-2xl border border-slate-200/90 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-lg shadow-slate-200/40 dark:shadow-black/40 overflow-hidden font-sans transition-all duration-150 hover:border-sky-300 dark:hover:border-sky-500">
       {/* Node Header */}
-      <div className="bg-gradient-to-r from-slate-50 to-sky-50/50 border-b border-slate-200 px-3.5 py-2.5 flex items-center justify-between">
+      <div className="bg-gradient-to-r from-slate-50 to-sky-50/50 dark:from-slate-800/80 dark:to-sky-950/40 border-b border-slate-200 dark:border-slate-800 px-3.5 py-2.5 flex items-center justify-between">
         <div className="flex items-center gap-2">
           <span className="w-6 h-6 rounded-md bg-sky-600 text-white flex items-center justify-center text-[11px] font-mono font-black shadow-xs">
             T
           </span>
           <div>
-            <div className="font-extrabold text-xs text-slate-800 font-mono tracking-wide">{table}</div>
-            <div className="text-[10px] text-slate-400 font-medium">
+            <div className="font-extrabold text-xs text-slate-800 dark:text-slate-100 font-mono tracking-wide">{table}</div>
+            <div className="text-[10px] text-slate-400 dark:text-slate-500 font-medium">
               {selectedCount} / {fields.length} kolom dipilih
             </div>
           </div>
         </div>
         <button
           onClick={() => removeNode(id)}
-          className="text-slate-400 hover:text-red-500 p-1 rounded-md hover:bg-red-50 transition"
+          className="text-slate-400 hover:text-red-500 p-1 rounded-md hover:bg-red-50 dark:hover:bg-red-950/40 transition"
           title="Hapus Tabel"
         >
           <Trash2 className="w-3.5 h-3.5" />
@@ -57,7 +57,7 @@ export const TableNode = memo(({ id, data }) => {
       </div>
 
       {/* Field Filter Input */}
-      <div className="p-2 border-b border-slate-100 bg-slate-50/60">
+      <div className="p-2 border-b border-slate-100 dark:border-slate-800 bg-slate-50/60 dark:bg-slate-900/60">
         <div className="relative flex items-center">
           <Search className="w-3 h-3 text-slate-400 absolute left-2.5 pointer-events-none" />
           <input
@@ -65,13 +65,13 @@ export const TableNode = memo(({ id, data }) => {
             value={filterText}
             onChange={(e) => setFilterText(e.target.value)}
             placeholder="Cari kolom..."
-            className="w-full bg-white border border-slate-200 rounded-lg px-2 pl-7 py-1 text-[11px] text-slate-700 focus:outline-none focus:border-sky-500 transition shadow-2xs"
+            className="w-full bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg px-2 pl-7 py-1 text-[11px] text-slate-700 dark:text-slate-200 focus:outline-none focus:border-sky-500 transition shadow-2xs"
           />
         </div>
       </div>
 
       {/* Field List */}
-      <div className="max-h-56 overflow-y-auto divide-y divide-slate-100 text-[11px]">
+      <div className="max-h-56 overflow-y-auto divide-y divide-slate-100 dark:divide-slate-800 text-[11px]">
         {filteredFields.map((field) => {
           const isSelected = isFieldSelected(field.fieldname);
           const isKey = field.keyflag === 'X';
@@ -80,7 +80,7 @@ export const TableNode = memo(({ id, data }) => {
             <div
               key={field.fieldname}
               className={`relative px-3.5 py-1.5 flex items-center justify-between group transition ${
-                isSelected ? 'bg-sky-50/80 text-sky-900 font-medium' : 'text-slate-600 hover:bg-slate-50'
+                isSelected ? 'bg-sky-50/80 dark:bg-sky-950/50 text-sky-900 dark:text-sky-200 font-medium' : 'text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800/60'
               }`}
             >
               {/* Target Handle (Left Port for Joins) */}
@@ -88,7 +88,7 @@ export const TableNode = memo(({ id, data }) => {
                 type="target"
                 position={Position.Left}
                 id={field.fieldname}
-                className="!bg-sky-500 !w-2.5 !h-2.5 !border-white"
+                className="!bg-sky-500 !w-2.5 !h-2.5 !border-white dark:!border-slate-900"
               />
 
               <div
@@ -96,20 +96,20 @@ export const TableNode = memo(({ id, data }) => {
                 onClick={() => toggleFieldSelection(id, table, field.fieldname, isKey, field.datatype)}
               >
                 {isSelected ? (
-                  <CheckSquare className="w-3.5 h-3.5 text-sky-600 shrink-0" />
+                  <CheckSquare className="w-3.5 h-3.5 text-sky-600 dark:text-sky-400 shrink-0" />
                 ) : (
-                  <Square className="w-3.5 h-3.5 text-slate-300 shrink-0 group-hover:text-slate-400" />
+                  <Square className="w-3.5 h-3.5 text-slate-300 dark:text-slate-600 shrink-0 group-hover:text-slate-400" />
                 )}
 
                 <div className="flex items-center gap-1.5 truncate">
                   {isKey && <Key className="w-3 h-3 text-amber-500 shrink-0" />}
-                  <span className={`font-mono text-xs ${isKey ? 'font-bold text-amber-800' : ''}`}>
+                  <span className={`font-mono text-xs ${isKey ? 'font-bold text-amber-800 dark:text-amber-400' : ''}`}>
                     {field.fieldname}
                   </span>
                 </div>
               </div>
 
-              <span className="text-[10px] text-slate-400 font-mono shrink-0 ml-2">
+              <span className="text-[10px] text-slate-400 dark:text-slate-500 font-mono shrink-0 ml-2">
                 {field.datatype || 'CHAR'} {field.leng ? field.leng : ''}
               </span>
 
@@ -118,25 +118,25 @@ export const TableNode = memo(({ id, data }) => {
                 type="source"
                 position={Position.Right}
                 id={field.fieldname}
-                className="!bg-sky-500 !w-2.5 !h-2.5 !border-white"
+                className="!bg-sky-500 !w-2.5 !h-2.5 !border-white dark:!border-slate-900"
               />
             </div>
           );
         })}
         {filteredFields.length === 0 && (
-          <div className="p-3 text-center text-slate-400 text-[11px]">Kolom tidak ditemukan</div>
+          <div className="p-3 text-center text-slate-400 dark:text-slate-500 text-[11px]">Kolom tidak ditemukan</div>
         )}
       </div>
 
       {/* Node Footer */}
-      <div className="bg-slate-50/80 border-t border-slate-100 px-3.5 py-1.5 flex items-center justify-between text-[10px] text-slate-500">
+      <div className="bg-slate-50/80 dark:bg-slate-900/80 border-t border-slate-100 dark:border-slate-800 px-3.5 py-1.5 flex items-center justify-between text-[10px] text-slate-500 dark:text-slate-400">
         <button
           onClick={handleSelectAll}
-          className="text-sky-600 hover:text-sky-700 font-semibold cursor-pointer"
+          className="text-sky-600 dark:text-sky-400 hover:text-sky-700 dark:hover:text-sky-300 font-semibold cursor-pointer"
         >
           {selectedCount === fields.length ? 'Batal Semua' : 'Pilih Semua'}
         </button>
-        <span className="font-mono text-slate-400">Total {fields.length}</span>
+        <span className="font-mono text-slate-400 dark:text-slate-500">Total {fields.length}</span>
       </div>
     </div>
   );

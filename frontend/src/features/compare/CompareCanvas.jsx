@@ -8,6 +8,7 @@ import {
 } from '@xyflow/react';
 import { CompareTableNode } from './CompareTableNode';
 import { useCompareStore } from '../../store/useCompareStore';
+import { useAppStore } from '../../store/useAppStore';
 import { Plus, Trash2, Database, Sparkles } from 'lucide-react';
 
 export const CompareCanvas = () => {
@@ -20,11 +21,13 @@ export const CompareCanvas = () => {
     addTableNode,
     clearCanvas,
   } = useCompareStore();
+  const { theme } = useAppStore();
 
   const [inputTable, setInputTable] = useState('');
   const [isAdding, setIsAdding] = useState(false);
 
   const nodeTypes = useMemo(() => ({ compareTableNode: CompareTableNode }), []);
+  const isDark = theme === 'dark';
 
   const handleAddTable = async (tableName) => {
     const tbl = (tableName || inputTable).trim().toUpperCase();
@@ -43,7 +46,7 @@ export const CompareCanvas = () => {
   const quickTables = ['EKKO', 'EKPO', 'BKPF', 'BSEG', 'MARC', 'LFA1'];
 
   return (
-    <div className="w-full h-full relative bg-slate-50 min-h-[300px]">
+    <div className="w-full h-full relative bg-slate-50 dark:bg-slate-950 min-h-[300px] transition-colors duration-200">
       <ReactFlow
         nodes={nodes}
         edges={edges}
@@ -52,32 +55,32 @@ export const CompareCanvas = () => {
         onConnect={onConnect}
         nodeTypes={nodeTypes}
         fitView
-        className="bg-slate-50"
+        className="bg-slate-50 dark:bg-slate-950"
       >
-        <Background color="#cbd5e1" gap={20} size={1.5} />
-        <Controls className="!bg-white !border-slate-200 !shadow-md !rounded-xl !overflow-hidden" />
+        <Background color={isDark ? '#1e293b' : '#cbd5e1'} gap={20} size={1.5} />
+        <Controls className="!bg-white dark:!bg-slate-900 !border-slate-200 dark:!border-slate-800 !shadow-md !rounded-xl !overflow-hidden !text-slate-700 dark:!text-slate-300" />
         <MiniMap
           nodeColor="#9333ea"
-          maskColor="rgba(241, 245, 249, 0.75)"
-          className="!bg-white !border-slate-200 rounded-xl shadow-md"
+          maskColor={isDark ? 'rgba(15, 23, 42, 0.75)' : 'rgba(241, 245, 249, 0.75)'}
+          className="!bg-white dark:!bg-slate-900 !border-slate-200 dark:!border-slate-800 rounded-xl shadow-md"
         />
 
         {/* Top Floating Control Panel */}
         <Panel position="top-left" className="flex items-center gap-2 m-3 flex-wrap">
           {/* Custom Table Input */}
-          <div className="flex items-center gap-1.5 bg-white/95 border border-slate-200 rounded-xl p-1 shadow-xs backdrop-blur-sm">
+          <div className="flex items-center gap-1.5 bg-white/95 dark:bg-slate-900/90 border border-slate-200 dark:border-slate-700 rounded-xl p-1 shadow-xs backdrop-blur-sm">
             <input
               type="text"
               value={inputTable}
               onChange={(e) => setInputTable(e.target.value)}
               placeholder="Nama tabel SAP..."
               onKeyDown={(e) => e.key === 'Enter' && handleAddTable()}
-              className="bg-slate-50 border border-slate-200 rounded-lg px-2.5 py-1 text-xs text-slate-800 uppercase font-mono w-32 focus:outline-none focus:border-purple-500"
+              className="bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg px-2.5 py-1 text-xs text-slate-800 dark:text-slate-200 uppercase font-mono w-32 focus:outline-none focus:border-purple-500"
             />
             <button
               onClick={() => handleAddTable()}
               disabled={isAdding || !inputTable.trim()}
-              className="flex items-center gap-1 px-2.5 py-1 rounded-lg bg-purple-600 hover:bg-purple-500 disabled:opacity-50 text-white text-xs font-semibold transition shadow-xs"
+              className="flex items-center gap-1 px-2.5 py-1 rounded-lg bg-purple-600 hover:bg-purple-500 disabled:opacity-50 text-white text-xs font-semibold transition shadow-xs cursor-pointer"
             >
               <Plus className="w-3.5 h-3.5" />
               <span>{isAdding ? 'Menambah...' : 'Tambah'}</span>
@@ -85,13 +88,13 @@ export const CompareCanvas = () => {
           </div>
 
           {/* Quick Add Pills */}
-          <div className="hidden sm:flex items-center gap-1 bg-white/95 border border-slate-200 rounded-xl p-1 shadow-xs backdrop-blur-sm">
-            <span className="text-[10px] font-bold text-slate-400 px-1 font-mono uppercase">Quick:</span>
+          <div className="hidden sm:flex items-center gap-1 bg-white/95 dark:bg-slate-900/90 border border-slate-200 dark:border-slate-700 rounded-xl p-1 shadow-xs backdrop-blur-sm">
+            <span className="text-[10px] font-bold text-slate-400 dark:text-slate-500 px-1 font-mono uppercase">Quick:</span>
             {quickTables.map((tbl) => (
               <button
                 key={tbl}
                 onClick={() => handleAddTable(tbl)}
-                className="px-2 py-0.5 rounded-md bg-slate-50 hover:bg-purple-50 hover:text-purple-700 text-slate-600 font-mono text-[11px] font-bold border border-slate-200 hover:border-purple-200 transition"
+                className="px-2 py-0.5 rounded-md bg-slate-50 dark:bg-slate-800 hover:bg-purple-50 dark:hover:bg-purple-950/60 hover:text-purple-700 dark:hover:text-purple-300 text-slate-600 dark:text-slate-300 font-mono text-[11px] font-bold border border-slate-200 dark:border-slate-700 hover:border-purple-200 dark:hover:border-purple-800 transition cursor-pointer"
               >
                 +{tbl}
               </button>
@@ -101,7 +104,7 @@ export const CompareCanvas = () => {
           {nodes.length > 0 && (
             <button
               onClick={clearCanvas}
-              className="flex items-center gap-1 px-2.5 py-1.5 rounded-xl bg-white/90 hover:bg-red-50 border border-slate-200 hover:border-red-200 text-slate-500 hover:text-red-600 text-xs shadow-xs transition"
+              className="flex items-center gap-1 px-2.5 py-1.5 rounded-xl bg-white/90 dark:bg-slate-900/90 hover:bg-red-50 dark:hover:bg-red-950/40 border border-slate-200 dark:border-slate-700 hover:border-red-200 dark:hover:border-red-800 text-slate-500 dark:text-slate-400 hover:text-red-600 dark:hover:text-red-400 text-xs shadow-xs transition cursor-pointer"
               title="Bersihkan Kanvas Komparasi"
             >
               <Trash2 className="w-3.5 h-3.5" />
@@ -111,10 +114,11 @@ export const CompareCanvas = () => {
         </Panel>
 
         {/* Status Indicator */}
-        <Panel position="bottom-left" className="m-3 text-[11px] text-slate-500 font-mono bg-white/90 px-3 py-1.5 rounded-xl border border-slate-200 shadow-2xs backdrop-blur-sm">
-          <span className="font-bold text-purple-700">Cross-Server Canvas:</span> {nodes.length} Tabel · {edges.length} Relasi Join
+        <Panel position="bottom-left" className="m-3 text-[11px] text-slate-500 dark:text-slate-400 font-mono bg-white/90 dark:bg-slate-900/90 px-3 py-1.5 rounded-xl border border-slate-200 dark:border-slate-800 shadow-2xs backdrop-blur-sm">
+          <span className="font-bold text-purple-700 dark:text-purple-400">Cross-Server Canvas:</span> {nodes.length} Tabel · {edges.length} Relasi Join
         </Panel>
       </ReactFlow>
     </div>
   );
 };
+

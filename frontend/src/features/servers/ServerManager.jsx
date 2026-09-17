@@ -26,16 +26,16 @@ export const ServerManager = () => {
   };
 
   return (
-    <div className="flex-1 flex flex-col h-full bg-slate-50 overflow-hidden select-none">
+    <div className="flex-1 flex flex-col h-full bg-slate-50 dark:bg-slate-950 overflow-hidden select-none">
       {/* Top Header */}
-      <div className="p-4 border-b border-slate-200 bg-white shadow-2xs flex items-center justify-between">
+      <div className="p-4 border-b border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-2xs flex items-center justify-between">
         <div className="flex items-center gap-3">
-          <span className="w-8 h-8 rounded-xl bg-sky-100 text-sky-700 border border-sky-200 flex items-center justify-center font-mono shadow-2xs">
+          <span className="w-8 h-8 rounded-xl bg-sky-100 dark:bg-sky-900/40 text-sky-700 dark:text-sky-300 border border-sky-200 dark:border-sky-800 flex items-center justify-center font-mono shadow-2xs">
             <Server className="w-4 h-4" />
           </span>
           <div>
-            <h2 className="font-extrabold text-sm text-slate-800">Profil Server SAP (Multi-Server Catalog)</h2>
-            <p className="text-[11px] text-slate-400">
+            <h2 className="font-extrabold text-sm text-slate-800 dark:text-slate-100">Profil Server SAP (Multi-Server Catalog)</h2>
+            <p className="text-[11px] text-slate-400 dark:text-slate-400">
               Koneksi dinamis tersimpan di PostgreSQL smart_report dengan enkripsi AES-Fernet (Rule 3 & 4)
             </p>
           </div>
@@ -43,7 +43,7 @@ export const ServerManager = () => {
 
         <button
           onClick={loadServers}
-          className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold border border-slate-200 transition"
+          className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 text-xs font-semibold border border-slate-200 dark:border-slate-700 transition"
         >
           <RefreshCw className="w-3.5 h-3.5" />
           <span>Muat Ulang</span>
@@ -62,8 +62,8 @@ export const ServerManager = () => {
               key={s.id}
               className={`rounded-2xl border p-4 flex flex-col justify-between space-y-4 transition ${
                 isSelected
-                  ? 'bg-white border-sky-500 shadow-md ring-2 ring-sky-200'
-                  : 'bg-white border-slate-200 shadow-xs hover:border-slate-300'
+                  ? 'bg-white dark:bg-slate-900 border-sky-500 shadow-md ring-2 ring-sky-200 dark:ring-sky-900'
+                  : 'bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 shadow-xs hover:border-slate-300 dark:hover:border-slate-700'
               }`}
             >
               <div className="space-y-3">
@@ -73,15 +73,15 @@ export const ServerManager = () => {
                     <span
                       className={`w-8 h-8 rounded-xl flex items-center justify-center font-mono font-black text-xs ${
                         isProd
-                          ? 'bg-rose-100 text-rose-700 border border-rose-200'
-                          : 'bg-sky-100 text-sky-700 border border-sky-200'
+                          ? 'bg-rose-100 dark:bg-rose-950/60 text-rose-700 dark:text-rose-300 border border-rose-200 dark:border-rose-800'
+                          : 'bg-sky-100 dark:bg-sky-950/60 text-sky-700 dark:text-sky-300 border border-sky-200 dark:border-sky-800'
                       }`}
                     >
                       {s.sid}
                     </span>
                     <div>
-                      <h3 className="font-extrabold text-xs text-slate-800">{s.name}</h3>
-                      <div className="text-[10px] text-slate-400 font-mono">
+                      <h3 className="font-extrabold text-xs text-slate-800 dark:text-slate-100">{s.name}</h3>
+                      <div className="text-[10px] text-slate-400 dark:text-slate-500 font-mono">
                         {s.host} : {s.instance}
                       </div>
                     </div>
@@ -90,10 +90,10 @@ export const ServerManager = () => {
                   <span
                     className={`text-[10px] uppercase font-mono font-bold px-2 py-0.5 rounded-md border ${
                       isProd
-                        ? 'bg-rose-100 text-rose-700 border-rose-200'
+                        ? 'bg-rose-100 dark:bg-rose-950/50 text-rose-700 dark:text-rose-300 border-rose-200 dark:border-rose-800'
                         : s.environment === 'qa'
-                        ? 'bg-purple-100 text-purple-700 border-purple-200'
-                        : 'bg-emerald-100 text-emerald-700 border-emerald-200'
+                        ? 'bg-purple-100 dark:bg-purple-950/50 text-purple-700 dark:text-purple-300 border-purple-200 dark:border-purple-800'
+                        : 'bg-emerald-100 dark:bg-emerald-950/50 text-emerald-700 dark:text-emerald-300 border-emerald-200 dark:border-emerald-800'
                     }`}
                   >
                     {s.environment}
@@ -101,18 +101,18 @@ export const ServerManager = () => {
                 </div>
 
                 {/* Details */}
-                <div className="bg-slate-50 border border-slate-200 rounded-xl p-2.5 space-y-1.5 text-[11px] font-mono">
-                  <div className="flex justify-between text-slate-600">
+                <div className="bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 rounded-xl p-2.5 space-y-1.5 text-[11px] font-mono">
+                  <div className="flex justify-between text-slate-600 dark:text-slate-400">
                     <span>SAP Client:</span>
-                    <span className="text-slate-900 font-bold">{s.client}</span>
+                    <span className="text-slate-900 dark:text-slate-100 font-bold">{s.client}</span>
                   </div>
-                  <div className="flex justify-between text-slate-600">
+                  <div className="flex justify-between text-slate-600 dark:text-slate-400">
                     <span>Username:</span>
-                    <span className="text-slate-900 font-medium">{s.username}</span>
+                    <span className="text-slate-900 dark:text-slate-100 font-medium">{s.username}</span>
                   </div>
-                  <div className="flex justify-between text-slate-600">
+                  <div className="flex justify-between text-slate-600 dark:text-slate-400">
                     <span>Password:</span>
-                    <span className="text-emerald-700 font-bold flex items-center gap-1">
+                    <span className="text-emerald-700 dark:text-emerald-400 font-bold flex items-center gap-1">
                       <Key className="w-3 h-3" />
                       <span>AES Terenkripsi</span>
                     </span>
@@ -124,25 +124,25 @@ export const ServerManager = () => {
                   <div
                     className={`rounded-xl p-2 text-[10px] font-mono border ${
                       result.success
-                        ? 'bg-emerald-50 border-emerald-200 text-emerald-800'
-                        : 'bg-rose-50 border-rose-200 text-rose-800'
+                        ? 'bg-emerald-50 dark:bg-emerald-950/40 border-emerald-200 dark:border-emerald-800 text-emerald-800 dark:text-emerald-300'
+                        : 'bg-rose-50 dark:bg-rose-950/40 border-rose-200 dark:border-rose-800 text-rose-800 dark:text-rose-300'
                     }`}
                   >
                     {result.success ? (
                       <div className="space-y-0.5">
                         <div className="flex items-center gap-1 font-bold">
-                          <CheckCircle2 className="w-3 h-3 text-emerald-600" />
+                          <CheckCircle2 className="w-3 h-3 text-emerald-600 dark:text-emerald-400" />
                           <span>LIVE: RFC_SYSTEM_INFO Responded</span>
                         </div>
                         {result.system_info && (
-                          <div className="text-slate-500 text-[9px]">
+                          <div className="text-slate-500 dark:text-slate-400 text-[9px]">
                             DB: {result.system_info.RFCDBSYS || 'N/A'} · Kernel: {result.system_info.RFCKERNRL || 'N/A'}
                           </div>
                         )}
                       </div>
                     ) : (
                       <div className="flex items-center gap-1 font-bold">
-                        <ShieldAlert className="w-3 h-3 text-rose-600" />
+                        <ShieldAlert className="w-3 h-3 text-rose-600 dark:text-rose-400" />
                         <span>Koneksi Gagal: {result.error}</span>
                       </div>
                     )}
@@ -151,13 +151,13 @@ export const ServerManager = () => {
               </div>
 
               {/* Actions */}
-              <div className="flex items-center justify-between pt-2 border-t border-slate-100">
+              <div className="flex items-center justify-between pt-2 border-t border-slate-100 dark:border-slate-800">
                 <button
                   onClick={() => setActiveServer(s)}
                   className={`px-3 py-1.5 rounded-xl text-xs font-semibold transition ${
                     isSelected
                       ? 'bg-sky-600 text-white font-bold shadow-xs'
-                      : 'bg-slate-100 hover:bg-slate-200 text-slate-700'
+                      : 'bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300'
                   }`}
                 >
                   {isSelected ? 'Server Aktif' : 'Set Aktif'}
@@ -166,9 +166,9 @@ export const ServerManager = () => {
                 <button
                   onClick={() => handleTestConnection(s.id, s.name)}
                   disabled={testingId === s.id}
-                  className="px-3 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold flex items-center gap-1.5 transition"
+                  className="px-3 py-1.5 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 text-xs font-semibold flex items-center gap-1.5 transition"
                 >
-                  <Activity className={`w-3.5 h-3.5 text-sky-600 ${testingId === s.id ? 'animate-spin' : ''}`} />
+                  <Activity className={`w-3.5 h-3.5 text-sky-600 dark:text-sky-400 ${testingId === s.id ? 'animate-spin' : ''}`} />
                   <span>{testingId === s.id ? 'Menguji...' : 'Test LIVE RFC'}</span>
                 </button>
               </div>

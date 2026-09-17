@@ -20,6 +20,31 @@ export const useAppStore = create((set, get) => ({
   activeEdgeForEdit: null,
   notification: null,
 
+  // Theme State ('light' | 'dark')
+  theme: localStorage.getItem('smart_sqvi_theme') || 'light',
+
+  initTheme: () => {
+    const saved = localStorage.getItem('smart_sqvi_theme') || 'light';
+    if (saved === 'dark') {
+      document.documentElement.classList.add('dark');
+    } else {
+      document.documentElement.classList.remove('dark');
+    }
+    set({ theme: saved });
+  },
+
+  toggleTheme: () => {
+    const nextTheme = get().theme === 'dark' ? 'light' : 'dark';
+    localStorage.setItem('smart_sqvi_theme', nextTheme);
+    if (nextTheme === 'dark') {
+      document.documentElement.classList.add('dark');
+    } else {
+      document.documentElement.classList.remove('dark');
+    }
+    set({ theme: nextTheme });
+    get().showNotification(`Mode diubah ke ${nextTheme === 'dark' ? 'Dark Mode 🌙' : 'Light Mode ☀️'}`, 'info');
+  },
+
   setActiveTab: (tab) => set({ activeTab: tab }),
   setCurrentQuery: (id, name) => set({ currentQueryId: id, currentQueryName: name }),
   setActiveServer: (server) => set({ activeServer: server }),
