@@ -7,6 +7,6 @@ cd "$SCRIPT_DIR/backend"
 source venv/bin/activate
 export PYTHONPATH="$SCRIPT_DIR/backend"
 
-echo "Starting Smart SQVI Backend on http://0.0.0.0:8001..."
+echo "Starting Smart Report Backend on http://0.0.0.0:8001..."
 exec uvicorn main:app --host 0.0.0.0 --port 8001
 

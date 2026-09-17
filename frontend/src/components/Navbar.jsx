@@ -111,16 +111,16 @@ export const Navbar = () => {
       <div className="flex items-center gap-3">
         <div className="flex items-center gap-2 font-extrabold text-sm tracking-tight text-slate-900 dark:text-slate-100">
           <span className="w-8 h-8 rounded-lg bg-sky-600 text-white flex items-center justify-center font-mono text-xs shadow-sm">
-            SQ
+            SR
           </span>
           <span className="bg-gradient-to-r from-sky-700 to-indigo-700 dark:from-sky-400 dark:to-indigo-400 bg-clip-text text-transparent font-black tracking-tight text-base">
-            SMART SQVI
+            SMART REPORT
           </span>
         </div>
 
         <span className="text-slate-300 dark:text-slate-700">/</span>
 
-        {/* Project Selector Dropdown (PER PROJECT SQVI) */}
+        {/* Project Selector Dropdown (PER PROJECT REPORT) */}
         <div className="relative">
           <button
             onClick={() => setProjectDropdownOpen(!projectDropdownOpen)}
@@ -137,7 +137,7 @@ export const Navbar = () => {
             <div className="absolute left-0 mt-1.5 w-72 bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 shadow-xl py-1.5 z-50 animate-in fade-in zoom-in-95 duration-150">
               <div className="px-3 py-1.5 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between">
                 <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">
-                  Daftar Project SQVI
+                  Daftar Project Report
                 </span>
                 <button
                   onClick={() => {

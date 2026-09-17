@@ -296,3 +296,4 @@ export const FilterManagerModal = () => {
     </div>
   );
 };
+

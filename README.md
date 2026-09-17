@@ -1,6 +1,6 @@
-# 🚀 SMART SQVI WEB
+# 🚀 SMART REPORT
 
-Sistem custom web pengganti **SAP SQVI** berbasis React, React Flow, AG Grid, FastAPI, Pandas, PostgreSQL, dan SAP MCP RFC Gateway.
+Sistem custom web pengganti reporting visual SAP berbasis React, React Flow, AG Grid, FastAPI, Pandas, PostgreSQL, dan SAP MCP RFC Gateway.
 
 ---
 

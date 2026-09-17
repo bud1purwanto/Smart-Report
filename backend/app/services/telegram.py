@@ -40,7 +40,7 @@ class TelegramService:
     async def send_excel_report(
         excel_bytes: bytes,
         filename: str = "Smart_Report.xlsx",
-        caption: str = "📊 Laporan Otomatis Smart SQVI",
+        caption: str = "📊 Laporan Otomatis Smart Report",
         chat_id: Optional[str] = None,
         bot_token: Optional[str] = None
     ) -> bool:

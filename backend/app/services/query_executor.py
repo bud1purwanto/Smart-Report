@@ -4,7 +4,7 @@ import pandas as pd
 from app.schemas.query import QueryDefinition, FilterItem
 from app.services.sap_rfc import sap_gateway
 
-logger = logging.getLogger("smart_sqvi.query_executor")
+logger = logging.getLogger("smart_report.query_executor")
 
 def build_rfc_where_clauses(clauses: List[str], connector: str = "AND") -> List[str]:
     """
@@ -232,3 +232,4 @@ async def fetch_query_dataset(
                 )
 
     return df
+

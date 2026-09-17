@@ -1,4 +1,4 @@
--- Database Initialization for SMART SQVI WEB
+-- Database Initialization for SMART REPORT
 -- Database: ABAP_DB
 -- Schema: smart_report
 

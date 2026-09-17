@@ -49,7 +49,7 @@ export const ExportToolbar = () => {
       const url = window.URL.createObjectURL(blob);
       const link = document.createElement('a');
       link.href = url;
-      link.setAttribute('download', `Smart_SQVI_Export_${Date.now()}.xlsx`);
+      link.setAttribute('download', `Smart_Report_Export_${Date.now()}.xlsx`);
       document.body.appendChild(link);
       link.click();
       link.remove();

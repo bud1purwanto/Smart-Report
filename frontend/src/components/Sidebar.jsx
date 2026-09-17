@@ -16,7 +16,7 @@ export const Sidebar = () => {
     <aside className="w-60 border-r border-slate-200/90 dark:border-slate-800 bg-slate-50/80 dark:bg-slate-900/80 backdrop-blur flex flex-col justify-between p-3.5 select-none shrink-0 transition-colors duration-200">
       <div className="space-y-4">
         <div className="px-2 pt-1 text-[11px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500">
-          Modul SQVI
+          Modul Smart Report
         </div>
         <nav className="space-y-1">
           {navItems.map((item) => {

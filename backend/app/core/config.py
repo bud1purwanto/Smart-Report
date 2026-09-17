@@ -3,7 +3,7 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 from pydantic import Field, field_validator
 
 class Settings(BaseSettings):
-    PROJECT_NAME: str = "Smart SQVI Web"
+    PROJECT_NAME: str = "Smart Report"
     API_V1_STR: str = "/api/v1"
     DEBUG: bool = True
 

@@ -85,7 +85,7 @@ async def run_report_schedule(schedule_id: int):
         )
 
         caption = (
-            f"📊 <b>Smart SQVI Scheduled Report</b>\n"
+            f"📊 <b>Smart Report Scheduled Report</b>\n"
             f"<b>Laporan:</b> {query_record.name}\n"
             f"<b>Server:</b> {server.name if server else 'N/A'} ({server.sid if server else ''})\n"
             f"<b>Total Baris:</b> {len(df):,} baris\n"
