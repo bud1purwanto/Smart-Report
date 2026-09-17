@@ -49,46 +49,18 @@ export const CompareCanvas = () => {
           className="!bg-white dark:!bg-slate-900 !border-slate-200 dark:!border-slate-800 rounded-xl shadow-md"
         />
 
-        {/* Top Floating Action Panel (Identical to Query Studio) */}
-        <Panel position="top-left" className="flex items-center gap-2 m-3 flex-wrap">
-          <button
-            onClick={() => setTableCatalogOpen(true)}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white/95 dark:bg-slate-900/90 hover:bg-slate-50 dark:hover:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-200 text-xs font-semibold shadow-xs backdrop-blur-sm transition cursor-pointer"
-          >
-            <Plus className="w-3.5 h-3.5 text-sky-600 dark:text-sky-400" />
-            <span>{t('nav.addTable')}</span>
-          </button>
-
-          {/* Selection Parameter Button */}
-          <button
-            onClick={() => setFilterModalOpen(true)}
-            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl border text-xs font-semibold shadow-xs backdrop-blur-sm transition cursor-pointer ${
-              filters.length > 0
-                ? 'bg-amber-50/95 dark:bg-amber-950/80 border-amber-300 dark:border-amber-700 text-amber-800 dark:text-amber-300'
-                : 'bg-white/95 dark:bg-slate-900/90 hover:bg-slate-50 dark:hover:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-200'
-            }`}
-            title={t('nav.selectionParamTooltip')}
-          >
-            <SlidersHorizontal className="w-3.5 h-3.5 text-amber-600 dark:text-amber-400" />
-            <span>{t('nav.params')}</span>
-            {filters.length > 0 && (
-              <span className="bg-amber-500 text-white text-[10px] font-bold px-1.5 py-0.2 rounded-full">
-                {filters.length}
-              </span>
-            )}
-          </button>
-
-          {nodes.length > 0 && (
+        {/* Top Floating Controls (Only shown when nodes exist for canvas reset) */}
+        {nodes.length > 0 && (
+          <Panel position="top-left" className="flex items-center gap-2 m-3 flex-wrap">
             <button
               onClick={clearCanvas}
               className="flex items-center gap-1 px-2.5 py-1.5 rounded-xl bg-white/90 dark:bg-slate-900/90 hover:bg-red-50 dark:hover:bg-red-950/40 border border-slate-200 dark:border-slate-700 hover:border-red-200 dark:hover:border-red-800 text-slate-500 dark:text-slate-400 hover:text-red-600 dark:hover:text-red-400 text-xs shadow-xs transition cursor-pointer"
               title={t('canvas.resetCanvas')}
             >
               <Trash2 className="w-3.5 h-3.5" />
-              <span>{t('canvas.resetCanvas')}</span>
             </button>
-          )}
-        </Panel>
+          </Panel>
+        )}
 
         {/* Active Filters Pill Bar (Top Right) */}
         {filters.length > 0 && (
