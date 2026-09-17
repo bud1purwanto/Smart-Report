@@ -2,6 +2,8 @@
 
 Sistem custom web pengganti reporting visual SAP berbasis React, React Flow, AG Grid, FastAPI, Pandas, PostgreSQL, dan SAP MCP RFC Gateway.
 
+> 📖 **Dokumentasi Lengkap:** Lihat [ARCHITECTURE_AND_FEATURES.md](ARCHITECTURE_AND_FEATURES.md) untuk panduan arsitektur sistem, pemisahan konteks modular, fitur multi-bahasa, dark mode, dan SOP penambahan fitur baru.
+
 ---
 
 ## 🛠️ TECH STACK & ARSITEKTUR
