@@ -15,6 +15,7 @@ from app.schemas.query import (
 from app.services.sap_rfc import sap_gateway
 from app.services.pandas_engine import pandas_engine
 from app.services.abap_validator import abap_validator
+from app.services.query_executor import fetch_query_dataset
 
 router = APIRouter(prefix="/queries", tags=["Queries"])
 
@@ -41,21 +42,21 @@ def list_queries(db: Session = Depends(get_db)):
 def get_query(query_id: int, db: Session = Depends(get_db)):
     record = db.query(SavedQuery).filter(SavedQuery.id == query_id).first()
     if not record:
-        raise HTTPException(status_code=404, detail="Saved query not found")
+        raise HTTPException(status_code=404, detail="Saved query not found.")
     return record
 
 @router.put("/{query_id}", response_model=SavedQueryResponse)
 def update_query(query_id: int, data: SavedQueryUpdate, db: Session = Depends(get_db)):
     record = db.query(SavedQuery).filter(SavedQuery.id == query_id).first()
     if not record:
-        raise HTTPException(status_code=404, detail="Saved query not found")
+        raise HTTPException(status_code=404, detail="Saved query not found.")
     if data.name is not None:
         record.name = data.name
     if data.description is not None:
         record.description = data.description
     if data.query_json is not None:
-        record.query_json = data.query_json.model_dump()
         val = abap_validator.validate_and_generate_sql(data.query_json)
+        record.query_json = data.query_json.model_dump()
         record.abap_sql_preview = val.get("open_sql")
     db.commit()
     db.refresh(record)
@@ -65,7 +66,7 @@ def update_query(query_id: int, data: SavedQueryUpdate, db: Session = Depends(ge
 def delete_query(query_id: int, db: Session = Depends(get_db)):
     record = db.query(SavedQuery).filter(SavedQuery.id == query_id).first()
     if not record:
-        raise HTTPException(status_code=404, detail="Saved query not found")
+        raise HTTPException(status_code=404, detail="Saved query not found.")
     db.delete(record)
     db.commit()
     return None
@@ -100,92 +101,22 @@ async def execute_query(req: QueryExecuteRequest, db: Session = Depends(get_db))
         # Default to first active server
         server = db.query(SapServerProfile).filter(SapServerProfile.is_active == True).first()
     if not server:
-        raise HTTPException(status_code=400, detail="No active SAP server profile available.")
+        raise HTTPException(status_code=400, detail="Tidak ada profil server SAP yang aktif atau dipilih.")
 
-    tables = query.tables
-    joins = query.joins
-    selected_fields = query.selectedFields
-    filters = query.filters
     rowcount = (query.options or {}).get("rowcount", 100)
 
-    # Primary table execution
-    primary_table = tables[0].table
-    # Extract fields for primary table
-    primary_fields = [sf.field for sf in selected_fields if sf.table == primary_table]
-    # Ensure join fields from primary table are included
-    for j in joins:
-        src_tbl = next((t.table for t in tables if t.id == j.sourceTableId), "")
-        tgt_tbl = next((t.table for t in tables if t.id == j.targetTableId), "")
-        if src_tbl == primary_table and j.sourceField not in primary_fields:
-            primary_fields.append(j.sourceField)
-        if tgt_tbl == primary_table and j.targetField not in primary_fields:
-            primary_fields.append(j.targetField)
-
-    # Build primary where clause
-    where_clauses = []
-    for flt in filters:
-        parts = flt.field.split(".")
-        tbl_part = parts[0] if len(parts) > 1 else primary_table
-        fld_part = parts[1] if len(parts) > 1 else parts[0]
-        if tbl_part.upper() == primary_table.upper():
-            if flt.operator.upper() == "EQ":
-                where_clauses.append(f"{fld_part} = '{flt.value}'")
-            elif flt.operator.upper() == "LIKE":
-                where_clauses.append(f"{fld_part} LIKE '{flt.value}'")
-
-    res_primary = await sap_gateway.read_table(
-        server_profile=server,
-        table=primary_table,
-        fields=primary_fields if primary_fields else None,
-        where=where_clauses,
-        rowcount=rowcount
-    )
-
-    df = pd.DataFrame(res_primary.get("rows", []))
-
-    # If secondary tables exist in query, fetch and merge using Pandas
-    if len(tables) > 1 and not df.empty:
-        for t in tables[1:]:
-            sec_table = t.table
-            sec_fields = [sf.field for sf in selected_fields if sf.table == sec_table]
-            # Find join matching this table
-            join_cond = next((j for j in joins if j.sourceTableId == t.id or j.targetTableId == t.id), None)
-            if join_cond:
-                if join_cond.sourceTableId == t.id:
-                    sec_join_field = join_cond.sourceField
-                    prim_join_field = join_cond.targetField
-                else:
-                    sec_join_field = join_cond.targetField
-                    prim_join_field = join_cond.sourceField
-
-                if sec_join_field not in sec_fields:
-                    sec_fields.append(sec_join_field)
-
-                # Filter secondary table using keys from primary if feasible
-                sec_where = []
-                if prim_join_field in df.columns:
-                    unique_vals = [str(v) for v in df[prim_join_field].dropna().unique()][:25]
-                    if unique_vals:
-                        cond = " OR ".join([f"{sec_join_field} = '{v}'" for v in unique_vals])
-                        sec_where.append(cond)
-
-                res_sec = await sap_gateway.read_table(
-                    server_profile=server,
-                    table=sec_table,
-                    fields=sec_fields if sec_fields else None,
-                    where=sec_where,
-                    rowcount=rowcount * 2
-                )
-                df_sec = pd.DataFrame(res_sec.get("rows", []))
-                if not df_sec.empty:
-                    how_type = "left" if "LEFT" in (join_cond.joinType or "").upper() else "inner"
-                    df = pd.merge(
-                        df, df_sec,
-                        left_on=prim_join_field,
-                        right_on=sec_join_field,
-                        how=how_type,
-                        suffixes=('', f'_{sec_table}')
-                    )
+    try:
+        df = await fetch_query_dataset(
+            server_profile=server,
+            query=query,
+            rowcount=rowcount
+        )
+    except Exception as exc:
+        err_msg = str(exc)
+        raise HTTPException(
+            status_code=500,
+            detail=f"Gagal mengambil data dari server SAP {server.name} ({server.sid}): {err_msg}"
+        )
 
     # Apply variant custom columns if specified
     if req.apply_variant_id:
@@ -204,9 +135,10 @@ async def execute_query(req: QueryExecuteRequest, db: Session = Depends(get_db))
     # Prepare AG Grid column defs
     columns = list(df.columns)
     column_defs = []
+    selected_fields = query.selectedFields
     for col in columns:
         # Match field alias/datatype if present
-        sf_match = next((sf for sf in selected_fields if sf.field == col or sf.alias == col), None)
+        sf_match = next((sf for sf in selected_fields if sf.field.upper() == col.upper() or (sf.alias and sf.alias.upper() == col.upper())), None)
         header_name = sf_match.alias if sf_match and sf_match.alias else col
         column_defs.append({
             "field": col,

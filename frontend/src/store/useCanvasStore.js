@@ -176,8 +176,18 @@ export const useCanvasStore = create((set, get) => ({
     set({ filters: [...get().filters, filter] });
   },
 
+  updateFilter: (index, updatedFilter) => {
+    const filters = [...get().filters];
+    filters[index] = updatedFilter;
+    set({ filters });
+  },
+
   removeFilter: (index) => {
     set({ filters: get().filters.filter((_, i) => i !== index) });
+  },
+
+  clearFilters: () => {
+    set({ filters: [] });
   },
 
   clearCanvas: () => {

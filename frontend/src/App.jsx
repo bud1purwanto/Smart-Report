@@ -10,6 +10,7 @@ import { TableCatalogModal } from './features/canvas/TableCatalogModal';
 import { CustomColumnModal } from './features/grid/CustomColumnModal';
 import { VariantManagerModal } from './features/grid/VariantManagerModal';
 import { AiAssistantModal } from './features/chat/AiAssistantModal';
+import { FilterManagerModal } from './features/canvas/FilterManagerModal';
 import { CrossServerCompare } from './features/compare/CrossServerCompare';
 import { ScheduleManager } from './features/schedule/ScheduleManager';
 import { ServerManager } from './features/servers/ServerManager';
@@ -103,6 +104,7 @@ export const App = () => {
       {/* Reusable Modals */}
       <JoinModal />
       <TableCatalogModal />
+      <FilterManagerModal />
       <CustomColumnModal />
       <VariantManagerModal />
       <AiAssistantModal />

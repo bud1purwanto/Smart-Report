@@ -9,19 +9,20 @@ import {
 import { TableNode } from './TableNode';
 import { useCanvasStore } from '../../store/useCanvasStore';
 import { useAppStore } from '../../store/useAppStore';
-import { Plus, Trash2, Maximize2, Sparkles, Layers } from 'lucide-react';
+import { Plus, Trash2, Maximize2, Sparkles, Layers, SlidersHorizontal } from 'lucide-react';
 
 export const VisualCanvas = () => {
   const {
     nodes,
     edges,
+    filters,
     onNodesChange,
     onEdgesChange,
     onConnect,
     clearCanvas,
   } = useCanvasStore();
 
-  const { setTableCatalogOpen, setAiModalOpen, setJoinModalOpen, theme } = useAppStore();
+  const { setTableCatalogOpen, setAiModalOpen, setFilterModalOpen, setJoinModalOpen, theme } = useAppStore();
 
   const nodeTypes = useMemo(() => ({ tableNode: TableNode }), []);
 
@@ -70,6 +71,22 @@ export const VisualCanvas = () => {
           >
             <Sparkles className="w-3.5 h-3.5 text-indigo-600 dark:text-indigo-400" />
             <span>AI Query Builder</span>
+          </button>
+          <button
+            onClick={() => setFilterModalOpen(true)}
+            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl border text-xs font-semibold shadow-xs backdrop-blur-sm transition cursor-pointer ${
+              filters.length > 0
+                ? 'bg-amber-50/95 dark:bg-amber-950/80 border-amber-300 dark:border-amber-700 text-amber-800 dark:text-amber-300'
+                : 'bg-white/95 dark:bg-slate-900/90 hover:bg-slate-50 dark:hover:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-200'
+            }`}
+          >
+            <SlidersHorizontal className="w-3.5 h-3.5 text-amber-600 dark:text-amber-400" />
+            <span>Kriteria Parameter</span>
+            {filters.length > 0 && (
+              <span className="bg-amber-500 text-white text-[10px] font-bold px-1.5 py-0.2 rounded-full">
+                {filters.length}
+              </span>
+            )}
           </button>
           {nodes.length > 0 && (
             <button

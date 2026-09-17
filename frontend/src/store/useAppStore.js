@@ -17,6 +17,7 @@ export const useAppStore = create((set, get) => ({
   variantModalOpen: false,
   formulaModalOpen: false,
   joinModalOpen: false,
+  filterModalOpen: false,
   activeEdgeForEdit: null,
   notification: null,
 
@@ -52,6 +53,7 @@ export const useAppStore = create((set, get) => ({
   setTableCatalogOpen: (val) => set({ tableCatalogOpen: val }),
   setVariantModalOpen: (val) => set({ variantModalOpen: val }),
   setFormulaModalOpen: (val) => set({ formulaModalOpen: val }),
+  setFilterModalOpen: (val) => set({ filterModalOpen: val }),
   setJoinModalOpen: (val, edge = null) => set({ joinModalOpen: val, activeEdgeForEdit: edge }),
 
   showNotification: (msg, type = 'info') => {

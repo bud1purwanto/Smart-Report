@@ -101,3 +101,37 @@ def test_abap_validator_cartesian():
     assert val["is_valid"] is False
     assert any("Cartesian Product" in err for err in val["errors"])
 
+
+def test_query_executor_build_rfc_where_clauses():
+    from app.services.query_executor import build_rfc_where_clauses, parse_filter_condition
+
+    # Test short clauses
+    clauses = ["EBELN = '4500000001'", "BUKRS = '1000'"]
+    options = build_rfc_where_clauses(clauses, connector="AND")
+    assert len(options) == 2
+    assert options[0].strip().endswith("AND")
+    assert "BUKRS = '1000'" in options[1]
+    for opt in options:
+        assert len(opt) <= 72
+
+    # Test long clauses wrapping
+    long_clauses = [f"EBELN = '45000000{i:02d}'" for i in range(25)]
+    wrapped_options = build_rfc_where_clauses(long_clauses, connector="OR")
+    for opt in wrapped_options:
+        assert len(opt) <= 72
+        assert not opt.startswith("AND ")
+        assert not opt.startswith("OR ")
+
+    # Test parse_filter_condition
+    flt = FilterItem(field="EKKO.BSTYP", operator="EQ", value="F")
+    cond = parse_filter_condition(flt, "EKKO")
+    assert cond == "BSTYP = 'F'"
+
+    flt_between = FilterItem(field="BSART", operator="BETWEEN", value="NB", valueTo="UB")
+    cond_between = parse_filter_condition(flt_between, "EKKO")
+    assert cond_between == "BSART BETWEEN 'NB' AND 'UB'"
+
+    flt_in = FilterItem(field="EKKO.BSART", operator="IN", value="NB, UB, FO")
+    cond_in = parse_filter_condition(flt_in, "EKKO")
+    assert cond_in == "BSART IN ('NB', 'UB', 'FO')"
+

@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import {
   Play, Sparkles, Plus, Save, Server, FolderKanban,
-  FilePlus2, ChevronDown, Check, Trash2, Sun, Moon
+  FilePlus2, ChevronDown, Check, Trash2, Sun, Moon, SlidersHorizontal
 } from 'lucide-react';
 import { useAppStore } from '../store/useAppStore';
 import { useCanvasStore } from '../store/useCanvasStore';
@@ -22,12 +22,13 @@ export const Navbar = () => {
     selectProject,
     setAiModalOpen,
     setTableCatalogOpen,
+    setFilterModalOpen,
     theme,
     toggleTheme,
     showNotification,
   } = useAppStore();
 
-  const { getQueryDefinition } = useCanvasStore();
+  const { getQueryDefinition, filters } = useCanvasStore();
   const { setGridData, setIsExecuting, setError, anonymize, deduplicate, activeVariant, isExecuting } = useGridStore();
   const [projectDropdownOpen, setProjectDropdownOpen] = useState(false);
 
@@ -268,10 +269,29 @@ export const Navbar = () => {
         {/* Add Table Button */}
         <button
           onClick={() => setTableCatalogOpen(true)}
-          className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-slate-50 dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-200 text-xs font-semibold transition"
+          className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-slate-50 dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-200 text-xs font-semibold transition cursor-pointer"
         >
           <Plus className="w-3.5 h-3.5 text-sky-600 dark:text-sky-400" />
           <span>Tambah Tabel</span>
+        </button>
+
+        {/* Selection Parameters / Filter Button */}
+        <button
+          onClick={() => setFilterModalOpen(true)}
+          className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg border text-xs font-semibold transition cursor-pointer ${
+            filters.length > 0
+              ? 'bg-amber-50 dark:bg-amber-950/40 border-amber-300 dark:border-amber-700 text-amber-800 dark:text-amber-300'
+              : 'bg-slate-50 dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-200'
+          }`}
+          title="Atur Kriteria Seleksi / Parameter Query (WHERE clause)"
+        >
+          <SlidersHorizontal className="w-3.5 h-3.5 text-amber-600 dark:text-amber-400" />
+          <span>Parameter</span>
+          {filters.length > 0 && (
+            <span className="bg-amber-500 text-white text-[10px] font-bold px-1.5 py-0.2 rounded-full">
+              {filters.length}
+            </span>
+          )}
         </button>
 
         {/* Save Query Button */}

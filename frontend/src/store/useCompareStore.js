@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 import { applyNodeChanges, applyEdgeChanges } from '@xyflow/react';
-import { getAutoJoin, getTableFields, compareServers } from '../services/api';
+import { getAutoJoin, getTableFields, syncTableMetadata, compareServers } from '../services/api';
 
 export const useCompareStore = create((set, get) => ({
   nodes: [],
@@ -53,7 +53,7 @@ export const useCompareStore = create((set, get) => ({
   },
 
   addTableNode: async (tableName, customPos = null) => {
-    const { nodes, edges, selectedFields, tableMetadataCache } = get();
+    const { nodes, edges, selectedFields, tableMetadataCache, serverAId } = get();
     const tableUpper = tableName.toUpperCase();
 
     let fields = tableMetadataCache[tableUpper];
@@ -63,7 +63,16 @@ export const useCompareStore = create((set, get) => ({
         fields = res.data;
         set({ tableMetadataCache: { ...tableMetadataCache, [tableUpper]: fields } });
       } catch (e) {
-        fields = [];
+        // Auto-sync table metadata from SAP if not in local cache
+        try {
+          await syncTableMetadata(tableUpper, serverAId || 1);
+          const res2 = await getTableFields(tableUpper);
+          fields = res2.data;
+          set({ tableMetadataCache: { ...tableMetadataCache, [tableUpper]: fields } });
+        } catch (syncErr) {
+          console.warn('Failed to sync metadata for', tableUpper, syncErr);
+          fields = [];
+        }
       }
     }
 
