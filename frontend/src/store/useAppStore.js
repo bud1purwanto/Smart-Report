@@ -48,11 +48,6 @@ export const useAppStore = create((set, get) => ({
       document.documentElement.classList.remove('dark');
     }
     set({ theme: targetTheme });
-    const isEn = get().language === 'en';
-    get().showNotification(
-      isEn ? `Switched to ${targetTheme === 'dark' ? 'Dark Mode 🌙' : 'Light Mode ☀️'}` : `Mode diubah ke ${targetTheme === 'dark' ? 'Dark Mode 🌙' : 'Light Mode ☀️'}`,
-      'info'
-    );
   },
 
   toggleTheme: () => {
@@ -64,10 +59,6 @@ export const useAppStore = create((set, get) => ({
     if (get().language === lang) return;
     localStorage.setItem('smart_report_lang', lang);
     set({ language: lang });
-    get().showNotification(
-      lang === 'en' ? 'Language changed to English 🇬🇧' : 'Bahasa diubah ke Bahasa Indonesia 🇮🇩',
-      'info'
-    );
   },
 
   toggleLanguage: () => {

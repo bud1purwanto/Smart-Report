@@ -4,8 +4,8 @@ import { useAppStore } from '../store/useAppStore';
 import { useTranslation } from '../locales/useTranslation';
 
 export const Sidebar = () => {
-  const { activeTab, setActiveTab, activeServer, theme, setTheme, toggleTheme } = useAppStore();
-  const { t, language, setLanguage, toggleLanguage } = useTranslation();
+  const { activeTab, setActiveTab, activeServer, theme, toggleTheme } = useAppStore();
+  const { t, language, toggleLanguage } = useTranslation();
 
   const navItems = [
     { id: 'studio', label: t('sidebar.queryStudio'), icon: LayoutGrid, desc: t('sidebar.queryStudioDesc') },
@@ -53,69 +53,40 @@ export const Sidebar = () => {
         </nav>
       </div>
 
-      {/* Bottom Section: Theme & Language Segmented Switches + SAP Status Card */}
+      {/* Bottom Section: Theme & Language Controls + SAP Status Card */}
       <div className="space-y-2.5">
-        {/* Theme & Language Controls (Side-by-Side Segmented Switches) */}
+        {/* Simple Theme & Language Controls */}
         <div className="grid grid-cols-2 gap-2">
-          {/* Theme Segmented Switch */}
-          <div className="flex items-center bg-slate-100 dark:bg-slate-900/90 p-1 rounded-xl border border-slate-200/80 dark:border-slate-800 shadow-2xs">
-            <button
-              type="button"
-              onClick={() => setTheme('light')}
-              className={`flex-1 flex items-center justify-center gap-1 py-1.5 px-1.5 rounded-lg text-xs font-semibold transition-all duration-200 cursor-pointer ${
-                theme === 'light'
-                  ? 'bg-white dark:bg-slate-800 text-amber-600 shadow-xs border border-slate-200/60 dark:border-slate-700 font-bold'
-                  : 'text-slate-400 hover:text-slate-600 dark:hover:text-slate-300'
-              }`}
-              title={t('sidebar.switchToLight')}
-            >
-              <Sun className={`w-3.5 h-3.5 ${theme === 'light' ? 'text-amber-500 fill-amber-400/20' : ''}`} />
-              <span className="text-[10px]">Light</span>
-            </button>
-            <button
-              type="button"
-              onClick={() => setTheme('dark')}
-              className={`flex-1 flex items-center justify-center gap-1 py-1.5 px-1.5 rounded-lg text-xs font-semibold transition-all duration-200 cursor-pointer ${
-                theme === 'dark'
-                  ? 'bg-white dark:bg-slate-800 text-indigo-400 shadow-xs border border-slate-200/60 dark:border-slate-700 font-bold'
-                  : 'text-slate-400 hover:text-slate-600 dark:hover:text-slate-300'
-              }`}
-              title={t('sidebar.switchToDark')}
-            >
-              <Moon className={`w-3.5 h-3.5 ${theme === 'dark' ? 'text-indigo-400 fill-indigo-400/20' : ''}`} />
-              <span className="text-[10px]">Dark</span>
-            </button>
-          </div>
+          {/* Theme Toggle Button */}
+          <button
+            type="button"
+            onClick={toggleTheme}
+            className="flex items-center justify-center gap-2 py-2 px-2.5 rounded-xl border border-slate-200/90 dark:border-slate-700/80 bg-white dark:bg-slate-800/90 hover:bg-slate-100/80 dark:hover:bg-slate-750 text-slate-700 dark:text-slate-200 text-xs font-semibold shadow-2xs transition cursor-pointer"
+            title={theme === 'dark' ? t('sidebar.switchToLight') : t('sidebar.switchToDark')}
+          >
+            {theme === 'dark' ? (
+              <>
+                <Moon className="w-3.5 h-3.5 text-indigo-400 fill-indigo-400/20" />
+                <span>Dark</span>
+              </>
+            ) : (
+              <>
+                <Sun className="w-3.5 h-3.5 text-amber-500 fill-amber-400/20" />
+                <span>Light</span>
+              </>
+            )}
+          </button>
 
-          {/* Language Segmented Switch */}
-          <div className="flex items-center bg-slate-100 dark:bg-slate-900/90 p-1 rounded-xl border border-slate-200/80 dark:border-slate-800 shadow-2xs">
-            <button
-              type="button"
-              onClick={() => setLanguage('en')}
-              className={`flex-1 flex items-center justify-center gap-1 py-1.5 px-1.5 rounded-lg text-[11px] font-mono font-black transition-all duration-200 cursor-pointer ${
-                language === 'en'
-                  ? 'bg-white dark:bg-slate-800 text-sky-600 dark:text-sky-400 shadow-xs border border-slate-200/60 dark:border-slate-700'
-                  : 'text-slate-400 hover:text-slate-600 dark:hover:text-slate-300'
-              }`}
-              title="English (Default)"
-            >
-              <span>🇬🇧</span>
-              <span>EN</span>
-            </button>
-            <button
-              type="button"
-              onClick={() => setLanguage('id')}
-              className={`flex-1 flex items-center justify-center gap-1 py-1.5 px-1.5 rounded-lg text-[11px] font-mono font-black transition-all duration-200 cursor-pointer ${
-                language === 'id'
-                  ? 'bg-white dark:bg-slate-800 text-sky-600 dark:text-sky-400 shadow-xs border border-slate-200/60 dark:border-slate-700'
-                  : 'text-slate-400 hover:text-slate-600 dark:hover:text-slate-300'
-              }`}
-              title="Bahasa Indonesia"
-            >
-              <span>🇮🇩</span>
-              <span>ID</span>
-            </button>
-          </div>
+          {/* Language Toggle Button */}
+          <button
+            type="button"
+            onClick={toggleLanguage}
+            className="flex items-center justify-center gap-2 py-2 px-2.5 rounded-xl border border-slate-200/90 dark:border-slate-700/80 bg-white dark:bg-slate-800/90 hover:bg-slate-100/80 dark:hover:bg-slate-750 text-slate-700 dark:text-slate-200 text-xs font-semibold shadow-2xs transition cursor-pointer"
+            title={language === 'en' ? 'Ganti ke Bahasa Indonesia' : 'Switch to English'}
+          >
+            <Languages className="w-3.5 h-3.5 text-sky-500" />
+            <span className="font-mono font-bold uppercase">{language}</span>
+          </button>
         </div>
 
         {/* SAP System Status Card */}
