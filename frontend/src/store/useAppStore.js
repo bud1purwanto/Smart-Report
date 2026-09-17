@@ -38,23 +38,29 @@ export const useAppStore = create((set, get) => ({
     set({ theme: saved });
   },
 
-  toggleTheme: () => {
-    const nextTheme = get().theme === 'dark' ? 'light' : 'dark';
-    localStorage.setItem('smart_sqvi_theme', nextTheme);
-    if (nextTheme === 'dark') {
+  setTheme: (targetTheme) => {
+    if (get().theme === targetTheme) return;
+    localStorage.setItem('smart_sqvi_theme', targetTheme);
+    if (targetTheme === 'dark') {
       document.documentElement.classList.add('dark');
     } else {
       document.documentElement.classList.remove('dark');
     }
-    set({ theme: nextTheme });
+    set({ theme: targetTheme });
     const isEn = get().language === 'en';
     get().showNotification(
-      isEn ? `Switched to ${nextTheme === 'dark' ? 'Dark Mode 🌙' : 'Light Mode ☀️'}` : `Mode diubah ke ${nextTheme === 'dark' ? 'Dark Mode 🌙' : 'Light Mode ☀️'}`,
+      isEn ? `Switched to ${targetTheme === 'dark' ? 'Dark Mode 🌙' : 'Light Mode ☀️'}` : `Mode diubah ke ${targetTheme === 'dark' ? 'Dark Mode 🌙' : 'Light Mode ☀️'}`,
       'info'
     );
   },
 
+  toggleTheme: () => {
+    const nextTheme = get().theme === 'dark' ? 'light' : 'dark';
+    get().setTheme(nextTheme);
+  },
+
   setLanguage: (lang) => {
+    if (get().language === lang) return;
     localStorage.setItem('smart_report_lang', lang);
     set({ language: lang });
     get().showNotification(
