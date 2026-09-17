@@ -154,6 +154,15 @@ async def fetch_query_dataset(
             if (sf.tableId == sec_node_id or sf.table.upper() == sec_table)
         ]
 
+        # Ensure ALL join fields connecting to or from this table are included
+        for j in joins:
+            src_tbl = next((tn.table.upper() for tn in tables if tn.id == j.sourceTableId), "")
+            tgt_tbl = next((tn.table.upper() for tn in tables if tn.id == j.targetTableId), "")
+            if (j.sourceTableId == sec_node_id or src_tbl == sec_table) and j.sourceField.upper() not in sec_fields:
+                sec_fields.append(j.sourceField.upper())
+            if (j.targetTableId == sec_node_id or tgt_tbl == sec_table) and j.targetField.upper() not in sec_fields:
+                sec_fields.append(j.targetField.upper())
+
         # Find join connecting to this table
         join_cond = next((j for j in joins if j.sourceTableId == sec_node_id or j.targetTableId == sec_node_id), None)
         if not join_cond:
@@ -166,9 +175,6 @@ async def fetch_query_dataset(
             else:
                 sec_join_field = join_cond.targetField.upper()
                 prim_join_field = join_cond.sourceField.upper()
-
-            if sec_join_field not in sec_fields:
-                sec_fields.append(sec_join_field)
 
             # User-defined filters for secondary table
             sec_user_filters = []
