@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react';
+import React, { useMemo } from 'react';
 import {
   ReactFlow,
   Background,
@@ -10,7 +10,7 @@ import { CompareTableNode } from './CompareTableNode';
 import { useCompareStore } from '../../store/useCompareStore';
 import { useAppStore } from '../../store/useAppStore';
 import { useTranslation } from '../../locales/useTranslation';
-import { Plus, Trash2, Database, Sparkles, SlidersHorizontal } from 'lucide-react';
+import { Plus, Trash2, SlidersHorizontal } from 'lucide-react';
 
 export const CompareCanvas = () => {
   const { t } = useTranslation();
@@ -21,32 +21,12 @@ export const CompareCanvas = () => {
     onNodesChange,
     onEdgesChange,
     onConnect,
-    addTableNode,
     clearCanvas,
   } = useCompareStore();
-  const { theme, setFilterModalOpen } = useAppStore();
-
-  const [inputTable, setInputTable] = useState('');
-  const [isAdding, setIsAdding] = useState(false);
+  const { theme, setFilterModalOpen, setTableCatalogOpen } = useAppStore();
 
   const nodeTypes = useMemo(() => ({ compareTableNode: CompareTableNode }), []);
   const isDark = theme === 'dark';
-
-  const handleAddTable = async (tableName) => {
-    const tbl = (tableName || inputTable).trim().toUpperCase();
-    if (!tbl) return;
-    setIsAdding(true);
-    try {
-      await addTableNode(tbl);
-      setInputTable('');
-    } catch (e) {
-      console.error(e);
-    } finally {
-      setIsAdding(false);
-    }
-  };
-
-  const quickTables = ['EKKO', 'EKPO', 'BKPF', 'BSEG', 'MARC', 'LFA1'];
 
   return (
     <div className="w-full h-full relative bg-slate-50 dark:bg-slate-950 min-h-[300px] transition-colors duration-200">
@@ -69,41 +49,15 @@ export const CompareCanvas = () => {
           className="!bg-white dark:!bg-slate-900 !border-slate-200 dark:!border-slate-800 rounded-xl shadow-md"
         />
 
-        {/* Top Floating Control Panel */}
+        {/* Top Floating Action Panel (Identical to Query Studio) */}
         <Panel position="top-left" className="flex items-center gap-2 m-3 flex-wrap">
-          {/* Custom Table Input */}
-          <div className="flex items-center gap-1.5 bg-white/95 dark:bg-slate-900/90 border border-slate-200 dark:border-slate-700 rounded-xl p-1 shadow-xs backdrop-blur-sm">
-            <input
-              type="text"
-              value={inputTable}
-              onChange={(e) => setInputTable(e.target.value)}
-              placeholder={t('canvas.tableInputPlaceholder')}
-              onKeyDown={(e) => e.key === 'Enter' && handleAddTable()}
-              className="bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg px-2.5 py-1 text-xs text-slate-800 dark:text-slate-200 uppercase font-mono w-32 focus:outline-none focus:border-purple-500"
-            />
-            <button
-              onClick={() => handleAddTable()}
-              disabled={isAdding || !inputTable.trim()}
-              className="flex items-center gap-1 px-2.5 py-1 rounded-lg bg-purple-600 hover:bg-purple-500 disabled:opacity-50 text-white text-xs font-semibold transition shadow-xs cursor-pointer"
-            >
-              <Plus className="w-3.5 h-3.5" />
-              <span>{isAdding ? t('canvas.adding') : t('canvas.add')}</span>
-            </button>
-          </div>
-
-          {/* Quick Add Pills */}
-          <div className="hidden sm:flex items-center gap-1 bg-white/95 dark:bg-slate-900/90 border border-slate-200 dark:border-slate-700 rounded-xl p-1 shadow-xs backdrop-blur-sm">
-            <span className="text-[10px] font-bold text-slate-400 dark:text-slate-500 px-1 font-mono uppercase">{t('canvas.quickAdd')}</span>
-            {quickTables.map((tbl) => (
-              <button
-                key={tbl}
-                onClick={() => handleAddTable(tbl)}
-                className="px-2 py-0.5 rounded-md bg-slate-50 dark:bg-slate-800 hover:bg-purple-50 dark:hover:bg-purple-950/60 hover:text-purple-700 dark:hover:text-purple-300 text-slate-600 dark:text-slate-300 font-mono text-[11px] font-bold border border-slate-200 dark:border-slate-700 hover:border-purple-200 dark:hover:border-purple-800 transition cursor-pointer"
-              >
-                +{tbl}
-              </button>
-            ))}
-          </div>
+          <button
+            onClick={() => setTableCatalogOpen(true)}
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white/95 dark:bg-slate-900/90 hover:bg-slate-50 dark:hover:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-200 text-xs font-semibold shadow-xs backdrop-blur-sm transition cursor-pointer"
+          >
+            <Plus className="w-3.5 h-3.5 text-sky-600 dark:text-sky-400" />
+            <span>{t('nav.addTable')}</span>
+          </button>
 
           {/* Selection Parameter Button */}
           <button
@@ -166,4 +120,3 @@ export const CompareCanvas = () => {
     </div>
   );
 };
-

@@ -443,6 +443,16 @@ export const Navbar = () => {
               </div>
             </div>
 
+            {/* Add Table Button (COMPARE) */}
+            <button
+              onClick={() => setTableCatalogOpen(true)}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-50 dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-200 text-xs font-semibold shadow-2xs transition cursor-pointer"
+              title={t('catalog.title')}
+            >
+              <Plus className="w-3.5 h-3.5 text-sky-600 dark:text-sky-400" />
+              <span className="hidden sm:inline">{t('nav.addTable')}</span>
+            </button>
+
             {/* Selection Parameters / Filter Button (COMPARE) */}
             <button
               onClick={() => setFilterModalOpen(true)}
@@ -451,7 +461,7 @@ export const Navbar = () => {
                   ? 'bg-amber-50 dark:bg-amber-950/40 border-amber-300 dark:border-amber-700 text-amber-800 dark:text-amber-300'
                   : 'bg-slate-50 dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-200'
               }`}
-              title="Atur Kriteria Seleksi / Parameter WHERE untuk Komparasi"
+              title={t('nav.selectionParamTooltip')}
             >
               <SlidersHorizontal className="w-3.5 h-3.5 text-amber-600 dark:text-amber-400" />
               <span>{t('nav.parameter')}</span>
