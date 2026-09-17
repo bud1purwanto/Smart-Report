@@ -1,0 +1,66 @@
+@import "tailwindcss/base";
+@import "tailwindcss/components";
+@import "tailwindcss/utilities";
+
+@import "@xyflow/react/dist/style.css";
+@import "ag-grid-community/styles/ag-grid.css";
+@import "ag-grid-community/styles/ag-theme-quartz.css";
+
+/* Custom Scrollbars */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: #0f172a;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #334155;
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #475569;
+}
+
+/* React Flow Custom Node Overrides */
+.react-flow__handle {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  border: 2px solid #0f172a;
+  background-color: #38bdf8;
+  transition: transform 0.15s ease, background-color 0.15s ease;
+}
+
+.react-flow__handle:hover {
+  transform: scale(1.3);
+  background-color: #60a5fa;
+}
+
+.react-flow__edge-path {
+  stroke: #38bdf8;
+  stroke-width: 2.5;
+}
+
+.react-flow__edge.selected .react-flow__edge-path {
+  stroke: #f59e0b;
+  stroke-width: 3.5;
+}
+
+/* AG Grid Dark Theme Quartz adjustments */
+.ag-theme-quartz-dark {
+  --ag-background-color: #0b1324;
+  --ag-header-background-color: #111e38;
+  --ag-odd-row-background-color: #0e172e;
+  --ag-row-hover-color: #1e293b;
+  --ag-selected-row-background-color: #1e3a8a33;
+  --ag-border-color: #1e293b;
+  --ag-font-family: 'Manrope', system-ui, sans-serif;
+  --ag-font-size: 13px;
+  --ag-header-foreground-color: #94a3b8;
+  --ag-foreground-color: #e2e8f0;
+}
+
