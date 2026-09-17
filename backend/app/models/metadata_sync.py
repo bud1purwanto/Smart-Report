@@ -13,6 +13,7 @@ class SapMetadataSync(Base):
     rollname = Column(String(30), nullable=True)
     fieldtext = Column(String(255), nullable=True)
     checktable = Column(String(30), nullable=True, index=True)
+    position = Column(Integer, default=0)
     synced_at = Column(DateTime(timezone=True), server_default=func.now())
 
     __table_args__ = (

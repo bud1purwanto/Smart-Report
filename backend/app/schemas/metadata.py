@@ -10,6 +10,7 @@ class TableFieldItem(BaseModel):
     rollname: Optional[str]
     fieldtext: Optional[str]
     checktable: Optional[str]
+    position: Optional[int] = 0
 
     model_config = ConfigDict(from_attributes=True)
 

@@ -38,7 +38,7 @@ def list_available_tables(db: Session = Depends(get_db)):
 def get_table_fields(tablename: str, db: Session = Depends(get_db)):
     fields = db.query(SapMetadataSync).filter(
         SapMetadataSync.tablename == tablename.upper()
-    ).order_by(SapMetadataSync.keyflag.desc(), SapMetadataSync.fieldname.asc()).all()
+    ).order_by(SapMetadataSync.position.asc(), SapMetadataSync.id.asc()).all()
     if not fields:
         raise HTTPException(status_code=404, detail=f"Table {tablename} not found in metadata cache.")
     return fields
@@ -141,18 +141,24 @@ async def sync_table_metadata_from_sap(
     if not server:
         raise HTTPException(status_code=400, detail="No active server available for sync")
 
-    # 1. Read DD03L (fields)
+    # 1. Read DD03L (fields & position in DDIC)
     dd03l_res = await sap_gateway.read_table(
         server_profile=server,
         table="DD03L",
-        fields=["FIELDNAME", "KEYFLAG", "ROLLNAME", "DATATYPE", "LENG", "CHECKTABLE"],
+        fields=["FIELDNAME", "POSITION", "KEYFLAG", "ROLLNAME", "DATATYPE", "LENG", "CHECKTABLE"],
         where=[f"TABNAME = '{tbl}' AND FIELDNAME NOT LIKE '%.%' AND FIELDNAME <> 'MANDT'"],
-        rowcount=200
+        rowcount=300
     )
 
     rows = dd03l_res.get("rows", [])
     if not rows:
         raise HTTPException(status_code=404, detail=f"No fields found for table {tbl} in SAP DD03L")
+
+    # Sort rows by POSITION integer so insertion order matches SAP DDIC
+    try:
+        rows.sort(key=lambda r: int(r.get("POSITION", 0) or 0))
+    except Exception:
+        pass
 
     # 2. Read DD03M (field descriptions in English)
     text_map = {}
@@ -182,6 +188,11 @@ async def sync_table_metadata_from_sap(
         except ValueError:
             leng_val = 0
 
+        try:
+            pos_val = int(r.get("POSITION", 0))
+        except ValueError:
+            pos_val = synced_count + 1
+
         desc = text_map.get(fn) or fn
 
         existing = db.query(SapMetadataSync).filter(
@@ -195,6 +206,7 @@ async def sync_table_metadata_from_sap(
             existing.leng = leng_val
             existing.rollname = r.get("ROLLNAME", "").strip()
             existing.checktable = r.get("CHECKTABLE", "").strip() or None
+            existing.position = pos_val
             if desc and desc != fn:
                 existing.fieldtext = desc
         else:
@@ -206,6 +218,7 @@ async def sync_table_metadata_from_sap(
                 leng=leng_val,
                 rollname=r.get("ROLLNAME", "").strip(),
                 checktable=r.get("CHECKTABLE", "").strip() or None,
+                position=pos_val,
                 fieldtext=desc
             )
             db.add(item)
