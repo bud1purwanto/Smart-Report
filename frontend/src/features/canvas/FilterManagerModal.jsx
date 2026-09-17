@@ -2,10 +2,14 @@ import React, { useState, useEffect } from 'react';
 import { X, Filter, Plus, Trash2, Check, SlidersHorizontal, Info } from 'lucide-react';
 import { useAppStore } from '../../store/useAppStore';
 import { useCanvasStore } from '../../store/useCanvasStore';
+import { useCompareStore } from '../../store/useCompareStore';
 
 export const FilterManagerModal = () => {
-  const { filterModalOpen, setFilterModalOpen, filterTarget, showNotification } = useAppStore();
-  const { nodes, filters, addFilter, removeFilter, clearFilters } = useCanvasStore();
+  const { filterModalOpen, setFilterModalOpen, filterTarget, showNotification, activeTab } = useAppStore();
+  const isCompare = activeTab === 'compare';
+  const canvasStore = useCanvasStore();
+  const compareStore = useCompareStore();
+  const { nodes, filters, addFilter, removeFilter, clearFilters } = isCompare ? compareStore : canvasStore;
 
   const [selectedTable, setSelectedTable] = useState('');
   const [selectedField, setSelectedField] = useState('');
@@ -78,10 +82,14 @@ export const FilterManagerModal = () => {
             </span>
             <div>
               <h3 className="font-extrabold text-sm text-slate-800 dark:text-slate-100">
-                Kriteria Seleksi & Parameter Query (SQVI Selection Screen)
+                {isCompare
+                  ? 'Kriteria Parameter Seleksi (Cross-Server Diff)'
+                  : 'Kriteria Seleksi & Parameter Query (SQVI Selection Screen)'}
               </h3>
               <p className="text-[11px] text-slate-400 dark:text-slate-400">
-                Tentukan kondisi pembatas data (WHERE clause) sebelum query ditarik ke ALV Grid
+                {isCompare
+                  ? 'Kondisi WHERE ini diterapkan secara paralel ke Server A dan Server B sebelum komparasi diff'
+                  : 'Tentukan kondisi pembatas data (WHERE clause) sebelum query ditarik ke ALV Grid'}
               </p>
             </div>
           </div>

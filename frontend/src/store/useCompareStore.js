@@ -20,10 +20,12 @@ export const useCompareStore = create((set, get) => ({
   error: null,
   filterStatus: 'ALL', // 'ALL' | 'MODIFIED' | 'ADDED_IN_B' | 'DELETED_IN_B' | 'IDENTICAL'
   inspectRow: null,
+  compareViewMode: 'canvas', // 'canvas' | 'split' | 'results'
 
   setServers: (serverAId, serverBId) => set({ serverAId, serverBId }),
   setFilterStatus: (status) => set({ filterStatus: status }),
   setInspectRow: (row) => set({ inspectRow: row }),
+  setCompareViewMode: (compareViewMode) => set({ compareViewMode }),
 
   onNodesChange: (changes) => {
     set({
@@ -171,6 +173,18 @@ export const useCompareStore = create((set, get) => ({
         ],
       });
     }
+  },
+
+  addFilter: (filter) => {
+    set({ filters: [...get().filters, filter] });
+  },
+
+  removeFilter: (index) => {
+    set({ filters: get().filters.filter((_, i) => i !== index) });
+  },
+
+  clearFilters: () => {
+    set({ filters: [] });
   },
 
   clearCanvas: () => {

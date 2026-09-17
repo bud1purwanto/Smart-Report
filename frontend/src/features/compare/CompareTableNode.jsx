@@ -1,12 +1,14 @@
 import React, { useState, memo } from 'react';
 import { Handle, Position } from '@xyflow/react';
-import { Key, Trash2, Search, CheckSquare, Square } from 'lucide-react';
+import { Key, Trash2, Search, CheckSquare, Square, Filter } from 'lucide-react';
 import { useCompareStore } from '../../store/useCompareStore';
+import { useAppStore } from '../../store/useAppStore';
 
 export const CompareTableNode = memo(({ id, data }) => {
   const { table, fields = [] } = data;
   const [filterText, setFilterText] = useState('');
-  const { removeNode, selectedFields, toggleFieldSelection } = useCompareStore();
+  const { removeNode, selectedFields, toggleFieldSelection, filters } = useCompareStore();
+  const { setFilterModalOpen } = useAppStore();
 
   const isFieldSelected = (fieldName) => {
     return selectedFields.some((f) => f.tableId === id && f.field === fieldName);
@@ -78,6 +80,9 @@ export const CompareTableNode = memo(({ id, data }) => {
         {filteredFields.map((field) => {
           const isSelected = isFieldSelected(field.fieldname);
           const isKey = field.keyflag === 'X';
+          const hasFilter = (filters || []).some(
+            (f) => f.field === `${table}.${field.fieldname}` || f.field === field.fieldname
+          );
           const fullLabel = field.fieldtext ? `${field.fieldname} - ${field.fieldtext}` : field.fieldname;
 
           return (
@@ -121,9 +126,27 @@ export const CompareTableNode = memo(({ id, data }) => {
                 </div>
               </div>
 
-              <span className="text-[10px] text-slate-400 dark:text-slate-500 font-mono shrink-0 ml-auto mr-1 whitespace-nowrap">
-                {field.datatype || 'CHAR'}{field.leng ? ` ${field.leng}` : ''}
-              </span>
+              <div className="flex items-center gap-1.5 shrink-0 ml-auto mr-1">
+                {/* Direct Filter / Parameter Trigger */}
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setFilterModalOpen(true, { table, field: field.fieldname });
+                  }}
+                  className={`p-1 rounded transition cursor-pointer ${
+                    hasFilter
+                      ? 'text-amber-600 dark:text-amber-400 bg-amber-100/90 dark:bg-amber-950/80 shadow-2xs'
+                      : 'text-slate-300 dark:text-slate-600 hover:text-amber-500 opacity-0 group-hover:opacity-100'
+                  }`}
+                  title={hasFilter ? `Parameter aktif: ${table}.${field.fieldname}` : `Set parameter komparasi untuk ${field.fieldname}`}
+                >
+                  <Filter className="w-3 h-3" />
+                </button>
+
+                <span className="text-[10px] text-slate-400 dark:text-slate-500 font-mono whitespace-nowrap">
+                  {field.datatype || 'CHAR'}{field.leng ? ` ${field.leng}` : ''}
+                </span>
+              </div>
 
               {/* Source Handle (Right Port for Joins) */}
               <Handle

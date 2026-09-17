@@ -1,67 +1,19 @@
-import React, { useState, useEffect } from 'react';
-import {
-  ArrowLeftRight, Play, CheckCircle2, AlertCircle,
-  Eye, RefreshCw, Layers, ChevronDown, ChevronUp, Sparkles, X,
-  Columns2, Table2
-} from 'lucide-react';
-import { useAppStore } from '../../store/useAppStore';
+import React from 'react';
+import { ArrowLeftRight, Eye, X } from 'lucide-react';
 import { useCompareStore } from '../../store/useCompareStore';
 import { CompareCanvas } from './CompareCanvas';
 
 export const CrossServerCompare = () => {
-  const { servers, showNotification } = useAppStore();
   const {
-    nodes,
-    serverAId,
-    serverBId,
-    setServers,
     filterStatus,
     setFilterStatus,
     isComparing,
     compareResult,
     inspectRow,
     setInspectRow,
-    executeCompare,
-    addTableNode,
+    compareViewMode,
+    setCompareViewMode,
   } = useCompareStore();
-
-  // View mode: 'canvas' (Full Canvas) | 'split' (Canvas + Results) | 'results' (Full Results)
-  const [compareViewMode, setCompareViewMode] = useState('canvas');
-
-  // Initialize servers if not set
-  useEffect(() => {
-    if (servers.length > 0 && (!serverAId || !serverBId)) {
-      const defaultA = servers[6]?.id || servers[0]?.id || 1;
-      const defaultB = servers[0]?.id || 1;
-      setServers(defaultA, defaultB);
-    }
-  }, [servers, serverAId, serverBId, setServers]);
-
-  const handleRunCompare = async () => {
-    if (nodes.length === 0) {
-      showNotification('Tambahkan minimal satu tabel di kanvas komparasi terlebih dahulu.', 'warning');
-      return;
-    }
-    if (serverAId === serverBId) {
-      showNotification('Pilih dua server SAP yang berbeda untuk melakukan komparasi.', 'warning');
-      return;
-    }
-
-    try {
-      setCompareViewMode('split'); // Reveal split diff results automatically
-      await executeCompare();
-      showNotification('Komparasi data antar-server SAP selesai.', 'success');
-    } catch (err) {
-      const msg = err.response?.data?.detail || err.message;
-      showNotification(`Gagal komparasi: ${typeof msg === 'object' ? JSON.stringify(msg) : msg}`, 'error');
-    }
-  };
-
-  const handleLoadSample = async () => {
-    await addTableNode('EKKO');
-    await addTableNode('EKPO');
-    showNotification('Tabel EKKO & EKPO dimuat ke kanvas komparasi.', 'info');
-  };
 
   const filteredRows = compareResult?.diff_rows.filter((r) => {
     if (filterStatus === 'ALL') return true;
@@ -72,127 +24,6 @@ export const CrossServerCompare = () => {
 
   return (
     <div className="flex-1 flex flex-col h-full bg-slate-50 dark:bg-slate-950 overflow-hidden select-none">
-      {/* Compare Setup Bar */}
-      <div className="p-3.5 border-b border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-2xs flex items-center justify-between flex-wrap gap-3">
-        <div className="flex items-center gap-4 flex-wrap">
-          <div className="flex items-center gap-2.5">
-            <span className="w-8 h-8 rounded-xl bg-purple-100 dark:bg-purple-900/40 text-purple-700 dark:text-purple-300 border border-purple-200 dark:border-purple-800 flex items-center justify-center font-mono shadow-2xs">
-              <ArrowLeftRight className="w-4 h-4" />
-            </span>
-            <div>
-              <h2 className="font-extrabold text-sm text-slate-800 dark:text-slate-100">Cross-Server Data Compare</h2>
-              <p className="text-[11px] text-slate-400 dark:text-slate-400">Komparasi data paralel multi-server SAP secara visual</p>
-            </div>
-          </div>
-
-          <div className="flex items-center gap-2 bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 rounded-xl p-1 px-2.5 shadow-2xs">
-            {/* Server A */}
-            <div className="flex items-center gap-1.5">
-              <span className="text-[10px] font-black text-sky-700 dark:text-sky-300 font-mono uppercase bg-sky-100 dark:bg-sky-950/60 px-1.5 py-0.5 rounded">
-                SERVER A
-              </span>
-              <select
-                value={serverAId || ''}
-                onChange={(e) => setServers(parseInt(e.target.value), serverBId)}
-                className="bg-transparent text-xs text-slate-800 dark:text-slate-200 font-semibold focus:outline-none cursor-pointer"
-              >
-                {servers.map((s) => (
-                  <option key={s.id} value={s.id} className="bg-white dark:bg-slate-900 text-slate-800 dark:text-slate-200">
-                    {s.name} ({s.sid})
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            <span className="text-slate-300 dark:text-slate-600 font-black text-xs">VS</span>
-
-            {/* Server B */}
-            <div className="flex items-center gap-1.5">
-              <span className="text-[10px] font-black text-purple-700 dark:text-purple-300 font-mono uppercase bg-purple-100 dark:bg-purple-950/60 px-1.5 py-0.5 rounded">
-                SERVER B
-              </span>
-              <select
-                value={serverBId || ''}
-                onChange={(e) => setServers(serverAId, parseInt(e.target.value))}
-                className="bg-transparent text-xs text-slate-800 dark:text-slate-200 font-semibold focus:outline-none cursor-pointer"
-              >
-                {servers.map((s) => (
-                  <option key={s.id} value={s.id} className="bg-white dark:bg-slate-900 text-slate-800 dark:text-slate-200">
-                    {s.name} ({s.sid})
-                  </option>
-                ))}
-              </select>
-            </div>
-          </div>
-        </div>
-
-        <div className="flex items-center gap-2">
-          {nodes.length === 0 && (
-            <button
-              onClick={handleLoadSample}
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-purple-50 dark:bg-purple-950/40 hover:bg-purple-100 dark:hover:bg-purple-900/40 border border-purple-200 dark:border-purple-800 text-purple-700 dark:text-purple-300 text-xs font-semibold transition"
-            >
-              <Sparkles className="w-3.5 h-3.5" />
-              <span>Muat Sampel EKKO/EKPO</span>
-            </button>
-          )}
-
-          {/* View Mode Controls when Results are Available */}
-          {compareResult && (
-            <div className="flex items-center bg-slate-100 dark:bg-slate-800 p-0.5 rounded-xl border border-slate-200 dark:border-slate-700">
-              <button
-                onClick={() => setCompareViewMode('canvas')}
-                className={`flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-semibold transition cursor-pointer ${
-                  compareViewMode === 'canvas'
-                    ? 'bg-white dark:bg-slate-700 text-purple-700 dark:text-purple-300 shadow-xs'
-                    : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200'
-                }`}
-                title="Tampilan Kanvas Penuh"
-              >
-                <Layers className="w-3.5 h-3.5" />
-                <span className="hidden sm:inline">Kanvas</span>
-              </button>
-              <button
-                onClick={() => setCompareViewMode('split')}
-                className={`flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-semibold transition cursor-pointer ${
-                  compareViewMode === 'split'
-                    ? 'bg-white dark:bg-slate-700 text-purple-700 dark:text-purple-300 shadow-xs'
-                    : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200'
-                }`}
-                title="Tampilan Split (Kanvas + Hasil Diff)"
-              >
-                <Columns2 className="w-3.5 h-3.5" />
-                <span className="hidden sm:inline">Split</span>
-              </button>
-              <button
-                onClick={() => setCompareViewMode('results')}
-                className={`flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-semibold transition cursor-pointer ${
-                  compareViewMode === 'results'
-                    ? 'bg-white dark:bg-slate-700 text-purple-700 dark:text-purple-300 shadow-xs'
-                    : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200'
-                }`}
-                title="Tampilan Hasil Komparasi Penuh"
-              >
-                <Table2 className="w-3.5 h-3.5" />
-                <span className="hidden sm:inline">Hasil Diff</span>
-                <span className="bg-purple-100 dark:bg-purple-900/60 text-purple-700 dark:text-purple-300 text-[10px] px-1.5 py-0.2 rounded-full font-mono font-bold">
-                  {filteredRows.length}
-                </span>
-              </button>
-            </div>
-          )}
-
-          <button
-            onClick={handleRunCompare}
-            disabled={isComparing}
-            className="flex items-center gap-1.5 px-4 py-1.5 rounded-xl bg-gradient-to-r from-sky-600 to-indigo-600 hover:from-sky-500 hover:to-indigo-500 disabled:opacity-50 text-white font-bold text-xs shadow-xs transition cursor-pointer"
-          >
-            <Play className={`w-3.5 h-3.5 fill-current ${isComparing ? 'animate-spin' : ''}`} />
-            <span>{isComparing ? 'Membandingkan...' : 'Jalankan Komparasi'}</span>
-          </button>
-        </div>
-      </div>
-
       {/* Compare Canvas Viewport */}
       <div
         className={`relative transition-all duration-300 ${

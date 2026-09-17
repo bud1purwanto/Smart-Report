@@ -9,19 +9,20 @@ import {
 import { CompareTableNode } from './CompareTableNode';
 import { useCompareStore } from '../../store/useCompareStore';
 import { useAppStore } from '../../store/useAppStore';
-import { Plus, Trash2, Database, Sparkles } from 'lucide-react';
+import { Plus, Trash2, Database, Sparkles, SlidersHorizontal } from 'lucide-react';
 
 export const CompareCanvas = () => {
   const {
     nodes,
     edges,
+    filters,
     onNodesChange,
     onEdgesChange,
     onConnect,
     addTableNode,
     clearCanvas,
   } = useCompareStore();
-  const { theme } = useAppStore();
+  const { theme, setFilterModalOpen } = useAppStore();
 
   const [inputTable, setInputTable] = useState('');
   const [isAdding, setIsAdding] = useState(false);
@@ -102,6 +103,25 @@ export const CompareCanvas = () => {
             ))}
           </div>
 
+          {/* Selection Parameter Button */}
+          <button
+            onClick={() => setFilterModalOpen(true)}
+            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl border text-xs font-semibold shadow-xs backdrop-blur-sm transition cursor-pointer ${
+              filters.length > 0
+                ? 'bg-amber-50/95 dark:bg-amber-950/80 border-amber-300 dark:border-amber-700 text-amber-800 dark:text-amber-300'
+                : 'bg-white/95 dark:bg-slate-900/90 hover:bg-slate-50 dark:hover:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-200'
+            }`}
+            title="Atur kriteria filter / parameter WHERE untuk komparasi multi-server"
+          >
+            <SlidersHorizontal className="w-3.5 h-3.5 text-amber-600 dark:text-amber-400" />
+            <span>Parameter</span>
+            {filters.length > 0 && (
+              <span className="bg-amber-500 text-white text-[10px] font-bold px-1.5 py-0.2 rounded-full">
+                {filters.length}
+              </span>
+            )}
+          </button>
+
           {nodes.length > 0 && (
             <button
               onClick={clearCanvas}
@@ -113,6 +133,28 @@ export const CompareCanvas = () => {
             </button>
           )}
         </Panel>
+
+        {/* Active Filters Pill Bar (Top Right) */}
+        {filters.length > 0 && (
+          <Panel position="top-right" className="m-3 max-w-lg">
+            <div className="flex items-center gap-1.5 flex-wrap bg-white/95 dark:bg-slate-900/95 border border-amber-300 dark:border-amber-700/80 rounded-2xl p-1.5 px-3 shadow-lg backdrop-blur-md text-[11px]">
+              <span className="font-bold text-amber-700 dark:text-amber-400 flex items-center gap-1">
+                <SlidersHorizontal className="w-3 h-3" />
+                <span>WHERE:</span>
+              </span>
+              {filters.map((f, idx) => (
+                <span
+                  key={idx}
+                  onClick={() => setFilterModalOpen(true)}
+                  className="font-mono text-[10px] bg-amber-50 dark:bg-amber-950/60 border border-amber-200 dark:border-amber-800 text-amber-900 dark:text-amber-200 px-2 py-0.5 rounded-lg cursor-pointer hover:bg-amber-100 dark:hover:bg-amber-900/60 transition shadow-2xs"
+                  title={`${f.field}${f.fieldtext ? ` (${f.fieldtext})` : ''}: Klik untuk ubah parameter ini`}
+                >
+                  {f.field}{f.fieldtext ? ` (${f.fieldtext})` : ''} {f.operator} '{f.value}'{f.valueTo ? `..${f.valueTo}` : ''}
+                </span>
+              ))}
+            </div>
+          </Panel>
+        )}
 
         {/* Status Indicator */}
         <Panel position="bottom-left" className="m-3 text-[11px] text-slate-500 dark:text-slate-400 font-mono bg-white/90 dark:bg-slate-900/90 px-3 py-1.5 rounded-xl border border-slate-200 dark:border-slate-800 shadow-2xs backdrop-blur-sm">
