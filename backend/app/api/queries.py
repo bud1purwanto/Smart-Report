@@ -8,6 +8,7 @@ from app.core.database import get_db
 from app.models.saved_query import SavedQuery
 from app.models.server_profile import SapServerProfile
 from app.models.variant import ReportVariant
+from app.models.metadata_sync import SapMetadataSync
 from app.schemas.query import (
     SavedQueryCreate, SavedQueryUpdate, SavedQueryResponse,
     QueryExecuteRequest, QueryExecuteResponse, QueryDefinition

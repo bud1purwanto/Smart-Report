@@ -81,9 +81,16 @@ export const Navbar = () => {
       setGridData(res.data);
       showNotification(`${t('nav.querySuccess')}: ${res.data.total_rows} ${t('common.rows')} (${res.data.execution_time_ms} ms)`, 'success');
     } catch (err) {
-      const msg = err.response?.data?.detail || err.message;
-      setError(typeof msg === 'object' ? JSON.stringify(msg) : msg);
-      showNotification(`${t('common.error')}: ${typeof msg === 'object' ? JSON.stringify(msg) : msg}`, 'error');
+      const rawDetail = err.response?.data?.detail;
+      const msg = typeof rawDetail === 'string'
+        ? rawDetail
+        : rawDetail?.validation_errors
+        ? rawDetail.validation_errors.join(', ')
+        : typeof rawDetail === 'object'
+        ? JSON.stringify(rawDetail)
+        : err.message || 'Terjadi kesalahan pada eksekusi query.';
+      setError(msg);
+      showNotification(`${t('common.error')}: ${msg}`, 'error');
     }
   };
 

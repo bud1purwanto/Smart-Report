@@ -180,9 +180,19 @@ async def fetch_query_dataset(
             # Key propagation filter from primary table
             key_clauses = []
             if prim_join_field in df.columns:
-                unique_vals = [str(v) for v in df[prim_join_field].dropna().unique() if str(v).strip()][:25]
-                if unique_vals:
-                    key_clauses = [f"{sec_join_field} = '{v}'" for v in unique_vals]
+                unique_vals = [str(v).strip() for v in df[prim_join_field].dropna().unique() if str(v).strip()][:25]
+                for v in unique_vals:
+                    key_clauses.append(f"{sec_join_field} = '{v}'")
+                    # SAP Alpha conversion & Object Key padding handling (e.g. AUSP-OBJEK 18 chars, MATNR, CHARG)
+                    if sec_join_field in ("OBJEK", "MATNR", "CHARG", "KUNNR", "LIFNR", "VBELN", "EBELN", "BELNR"):
+                        if len(v) < 18 and v.isdigit():
+                            zfilled18 = v.zfill(18)
+                            if f"{sec_join_field} = '{zfilled18}'" not in key_clauses:
+                                key_clauses.append(f"{sec_join_field} = '{zfilled18}'")
+                        if len(v) < 10 and v.isdigit():
+                            zfilled10 = v.zfill(10)
+                            if f"{sec_join_field} = '{zfilled10}'" not in key_clauses:
+                                key_clauses.append(f"{sec_join_field} = '{zfilled10}'")
 
             formatted_sec_where = []
             if sec_user_filters:
@@ -201,7 +211,7 @@ async def fetch_query_dataset(
                     table=sec_table,
                     fields=sec_fields if sec_fields else None,
                     where=formatted_sec_where if formatted_sec_where else None,
-                    rowcount=rowcount * 3
+                    rowcount=rowcount * 5
                 )
                 df_sec = pd.DataFrame(res_sec.get("rows", []))
             except Exception as sec_err:
@@ -213,7 +223,7 @@ async def fetch_query_dataset(
                         table=sec_table,
                         fields=sec_fields if sec_fields else None,
                         where=fallback_where,
-                        rowcount=rowcount * 3
+                        rowcount=rowcount * 5
                     )
                     df_sec = pd.DataFrame(res_sec.get("rows", []))
                 except Exception as fallback_err:
@@ -222,7 +232,9 @@ async def fetch_query_dataset(
 
             if not df_sec.empty and prim_join_field in df.columns and sec_join_field in df_sec.columns:
                 how_type = "left" if "LEFT" in (join_cond.joinType or "").upper() else "inner"
-                df = pd.merge(
+                
+                # Check direct match
+                merged_test = pd.merge(
                     df,
                     df_sec,
                     left_on=prim_join_field,
@@ -230,6 +242,24 @@ async def fetch_query_dataset(
                     how=how_type,
                     suffixes=('', f'_{sec_table}')
                 )
+                
+                # If direct match succeeded and found rows
+                if not merged_test.empty and (how_type == "inner" or merged_test[sec_join_field].notna().any()):
+                    df = merged_test
+                else:
+                    # Match with stripped leading zeros (handles alpha padding mismatch like CHARG 10 vs OBJEK 18)
+                    df['_k_prim'] = df[prim_join_field].astype(str).str.strip().str.lstrip('0')
+                    df_sec['_k_sec'] = df_sec[sec_join_field].astype(str).str.strip().str.lstrip('0')
+                    
+                    df = pd.merge(
+                        df,
+                        df_sec,
+                        left_on='_k_prim',
+                        right_on='_k_sec',
+                        how=how_type,
+                        suffixes=('', f'_{sec_table}')
+                    )
+                    df.drop(columns=['_k_prim', '_k_sec'], inplace=True, errors='ignore')
 
     return df
 
