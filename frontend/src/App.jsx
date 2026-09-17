@@ -8,6 +8,7 @@ import { AbapValidatorPanel } from './features/validator/AbapValidatorPanel';
 import { JoinModal } from './features/canvas/JoinModal';
 import { TableCatalogModal } from './features/canvas/TableCatalogModal';
 import { CustomColumnModal } from './features/grid/CustomColumnModal';
+import { PivotModal } from './features/grid/PivotModal';
 import { VariantManagerModal } from './features/grid/VariantManagerModal';
 import { AiAssistantModal } from './features/chat/AiAssistantModal';
 import { FilterManagerModal } from './features/canvas/FilterManagerModal';
@@ -142,6 +143,7 @@ export const App = () => {
       <TableCatalogModal />
       <FilterManagerModal />
       <CustomColumnModal />
+      <PivotModal />
       <VariantManagerModal />
       <AiAssistantModal />
     </div>
