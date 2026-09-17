@@ -37,6 +37,10 @@ class QueryDefinition(BaseModel):
     joins: List[JoinItem] = []
     selectedFields: List[FieldSelectionItem] = []
     filters: List[FilterItem] = []
+    customColumns: Optional[List[Dict[str, Any]]] = []
+    pivotConfig: Optional[Dict[str, Any]] = None
+    anonymize: Optional[bool] = False
+    deduplicate: Optional[bool] = False
     options: Optional[Dict[str, Any]] = Field(default_factory=lambda: {"rowcount": 100})
 
 class SavedQueryBase(BaseModel):

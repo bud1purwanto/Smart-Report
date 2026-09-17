@@ -32,24 +32,65 @@ export const useGridStore = create((set, get) => ({
   setViewMode: (val) => set({ viewMode: val }),
 
   setGridData: ({ columns, column_defs, rows, total_rows, execution_time_ms, abap_sql }) => {
+    const { customColumns, pivotConfig } = get();
+
+    let finalRows = rows || [];
+    let finalDefs = [...(column_defs || [])];
+    let finalCols = [...(columns || [])];
+
+    // 1. Re-evaluate custom calculated formula columns if defined in project
+    if (customColumns && customColumns.length > 0) {
+      customColumns.forEach((col) => {
+        finalRows = finalRows.map((row) => {
+          try {
+            const evalVal = Function('row', `try { return (${col.formula}); } catch(e) { return null; }`)(row);
+            return { ...row, [col.name]: evalVal };
+          } catch {
+            return { ...row, [col.name]: null };
+          }
+        });
+        if (!finalDefs.some((d) => d.field === col.name)) {
+          finalDefs.push({
+            field: col.name,
+            headerName: `fx: ${col.name}`,
+            sortable: true,
+            filter: true,
+            cellClass: 'bg-indigo-950/30 text-indigo-300 font-mono font-semibold',
+          });
+        }
+        if (!finalCols.includes(col.name)) {
+          finalCols.push(col.name);
+        }
+      });
+    }
+
     set({
-      columns: columns || [],
-      columnDefs: column_defs || [],
-      rowData: rows || [],
-      totalRows: total_rows || 0,
+      columns: finalCols,
+      columnDefs: finalDefs,
+      rowData: finalRows,
+      totalRows: total_rows || finalRows.length,
       executionTimeMs: execution_time_ms || 0,
       abapSql: abap_sql || '',
       isExecuting: false,
       error: null,
       viewMode: 'split', // Automatically open ALV results when query completes
-      // Reset pivot state on fresh query execution
+      rawRowData: finalRows,
+      rawColumnDefs: finalDefs,
+      rawColumns: finalCols,
+      rawTotalRows: total_rows || finalRows.length,
       isPivoted: false,
-      pivotConfig: null,
-      rawRowData: [],
-      rawColumnDefs: [],
-      rawColumns: [],
-      rawTotalRows: 0,
     });
+
+    // 2. Auto-apply saved pivot configuration if configured in project
+    if (
+      pivotConfig &&
+      pivotConfig.indexColumns &&
+      pivotConfig.indexColumns.length > 0 &&
+      pivotConfig.pivotColumn &&
+      pivotConfig.valueColumn
+    ) {
+      get().applyPivot(pivotConfig);
+    }
   },
 
   setIsExecuting: (val) => set({

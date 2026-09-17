@@ -1,6 +1,7 @@
 import { create } from 'zustand';
 import { applyNodeChanges, applyEdgeChanges } from '@xyflow/react';
 import { getAutoJoin, getTableFields } from '../services/api';
+import { useGridStore } from './useGridStore';
 
 export const useCanvasStore = create((set, get) => ({
   nodes: [],
@@ -294,10 +295,26 @@ export const useCanvasStore = create((set, get) => ({
       filters,
       tableMetadataCache: metadataCache,
     });
+
+    // Restore Grid Project State (Formulas, Pivot Config, Anonymize, Dedup)
+    const customCols = queryDef.customColumns || queryDef.options?.customColumns || [];
+    const pConfig = queryDef.pivotConfig || queryDef.options?.pivotConfig || null;
+    const anon = queryDef.anonymize ?? queryDef.options?.anonymize ?? false;
+    const dedup = queryDef.deduplicate ?? queryDef.options?.deduplicate ?? false;
+
+    useGridStore.setState({
+      customColumns: customCols,
+      pivotConfig: pConfig,
+      isPivoted: Boolean(pConfig && pConfig.indexColumns && pConfig.pivotColumn && pConfig.valueColumn),
+      anonymize: anon,
+      deduplicate: dedup,
+    });
   },
 
   getQueryDefinition: () => {
     const { nodes, edges, selectedFields, filters } = get();
+    const gridState = useGridStore.getState();
+
     return {
       tables: nodes.map((n) => ({
         id: n.id,
@@ -314,7 +331,17 @@ export const useCanvasStore = create((set, get) => ({
       })),
       selectedFields,
       filters,
-      options: { rowcount: 200 },
+      customColumns: gridState.customColumns || [],
+      pivotConfig: gridState.pivotConfig || null,
+      anonymize: Boolean(gridState.anonymize),
+      deduplicate: Boolean(gridState.deduplicate),
+      options: {
+        rowcount: 200,
+        customColumns: gridState.customColumns || [],
+        pivotConfig: gridState.pivotConfig || null,
+        anonymize: Boolean(gridState.anonymize),
+        deduplicate: Boolean(gridState.deduplicate),
+      },
     };
   },
 }));
