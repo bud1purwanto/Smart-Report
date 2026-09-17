@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import {
   Play, Sparkles, Plus, Save, Server, FolderKanban,
-  FilePlus2, ChevronDown, Check, Trash2, Sun, Moon, SlidersHorizontal
+  FilePlus2, ChevronDown, Check, Trash2, SlidersHorizontal
 } from 'lucide-react';
 import { useAppStore } from '../store/useAppStore';
 import { useCanvasStore } from '../store/useCanvasStore';
@@ -23,8 +23,6 @@ export const Navbar = () => {
     setAiModalOpen,
     setTableCatalogOpen,
     setFilterModalOpen,
-    theme,
-    toggleTheme,
     showNotification,
   } = useAppStore();
 
@@ -227,25 +225,6 @@ export const Navbar = () => {
             </span>
           )}
         </div>
-
-        {/* Light / Dark Mode Toggle Button */}
-        <button
-          onClick={toggleTheme}
-          className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 text-xs font-semibold transition shadow-2xs cursor-pointer"
-          title={theme === 'dark' ? 'Beralih ke Light Mode ☀️' : 'Beralih ke Dark Mode 🌙'}
-        >
-          {theme === 'dark' ? (
-            <>
-              <Sun className="w-3.5 h-3.5 text-amber-400 fill-amber-400/30" />
-              <span className="hidden sm:inline">Light</span>
-            </>
-          ) : (
-            <>
-              <Moon className="w-3.5 h-3.5 text-slate-600" />
-              <span className="hidden sm:inline">Dark</span>
-            </>
-          )}
-        </button>
 
         {/* New Query / Clear Canvas Button (Per Project SQVI) */}
         <button

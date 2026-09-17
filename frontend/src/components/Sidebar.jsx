@@ -1,9 +1,9 @@
 import React from 'react';
-import { LayoutGrid, ArrowLeftRight, Clock, Server } from 'lucide-react';
+import { LayoutGrid, ArrowLeftRight, Clock, Server, Sun, Moon } from 'lucide-react';
 import { useAppStore } from '../store/useAppStore';
 
 export const Sidebar = () => {
-  const { activeTab, setActiveTab, activeServer } = useAppStore();
+  const { activeTab, setActiveTab, activeServer, theme, toggleTheme } = useAppStore();
 
   const navItems = [
     { id: 'studio', label: 'Query Studio', icon: LayoutGrid, desc: 'Visual Canvas & ALV Grid' },
@@ -51,8 +51,29 @@ export const Sidebar = () => {
         </nav>
       </div>
 
-      {/* SAP System Status Card */}
-      <div className="rounded-xl bg-white dark:bg-slate-800/90 border border-slate-200/90 dark:border-slate-700 p-3 shadow-xs space-y-2">
+      {/* Bottom Section: Theme Mode Toggle & SAP Status Card */}
+      <div className="space-y-2.5">
+        {/* Mode Toggle Button */}
+        <button
+          onClick={toggleTheme}
+          className="w-full flex items-center justify-between px-3 py-2 rounded-xl bg-white dark:bg-slate-800/90 hover:bg-slate-100 dark:hover:bg-slate-700/80 border border-slate-200/90 dark:border-slate-700 text-slate-700 dark:text-slate-200 text-xs font-semibold shadow-xs transition cursor-pointer"
+          title={theme === 'dark' ? 'Beralih ke Light Mode ☀️' : 'Beralih ke Dark Mode 🌙'}
+        >
+          <div className="flex items-center gap-2">
+            {theme === 'dark' ? (
+              <Sun className="w-4 h-4 text-amber-400 fill-amber-400/30" />
+            ) : (
+              <Moon className="w-4 h-4 text-slate-600 dark:text-slate-400" />
+            )}
+            <span>{theme === 'dark' ? 'Light Mode' : 'Dark Mode'}</span>
+          </div>
+          <span className="text-[10px] bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 px-2 py-0.5 rounded-md font-mono font-medium">
+            {theme === 'dark' ? '☀️ Aktif' : '🌙 Aktif'}
+          </span>
+        </button>
+
+        {/* SAP System Status Card */}
+        <div className="rounded-xl bg-white dark:bg-slate-800/90 border border-slate-200/90 dark:border-slate-700 p-3 shadow-xs space-y-2">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
             <span className="w-2 h-2 rounded-full bg-emerald-500 ring-4 ring-emerald-100 dark:ring-emerald-950/60 animate-pulse"></span>
@@ -72,6 +93,7 @@ export const Sidebar = () => {
           </div>
         </div>
       </div>
-    </aside>
-  );
+    </div>
+  </aside>
+);
 };
