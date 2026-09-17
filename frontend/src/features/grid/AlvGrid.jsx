@@ -31,12 +31,12 @@ export const AlvGrid = () => {
   }, []);
 
   return (
-    <div className="w-full h-full relative bg-slate-950 flex flex-col">
+    <div className="w-full h-full relative bg-white flex flex-col">
       {/* Loading Overlay */}
       {isExecuting && (
-        <div className="absolute inset-0 z-20 flex flex-col items-center justify-center bg-slate-950/70 backdrop-blur-sm space-y-3">
-          <div className="w-8 h-8 rounded-full border-2 border-sky-400 border-t-transparent animate-spin"></div>
-          <p className="text-xs text-slate-300 font-medium tracking-wide">
+        <div className="absolute inset-0 z-20 flex flex-col items-center justify-center bg-white/80 backdrop-blur-xs space-y-3">
+          <div className="w-8 h-8 rounded-full border-2 border-sky-600 border-t-transparent animate-spin"></div>
+          <p className="text-xs text-slate-600 font-semibold tracking-wide">
             Mengambil data dari SAP via MCP Gateway...
           </p>
         </div>
@@ -44,15 +44,15 @@ export const AlvGrid = () => {
 
       {/* Error Message */}
       {error && (
-        <div className="m-3 p-3 rounded-lg bg-red-950/80 border border-red-800 text-red-300 text-xs flex items-center gap-2">
-          <ShieldAlert className="w-4 h-4 shrink-0 text-red-400" />
-          <span>{error}</span>
+        <div className="m-3 p-3 rounded-xl bg-red-50 border border-red-200 text-red-700 text-xs flex items-center gap-2 shadow-xs">
+          <ShieldAlert className="w-4 h-4 shrink-0 text-red-600" />
+          <span className="font-medium">{error}</span>
         </div>
       )}
 
       {/* Grid or Empty State */}
       {rowData.length > 0 ? (
-        <div className="ag-theme-quartz-dark flex-1 w-full">
+        <div className="ag-theme-quartz flex-1 w-full">
           <AgGridReact
             ref={gridRef}
             rowData={rowData}
@@ -68,11 +68,11 @@ export const AlvGrid = () => {
           />
         </div>
       ) : (
-        <div className="flex-1 flex flex-col items-center justify-center text-slate-500 text-xs space-y-2 select-none">
-          <Database className="w-8 h-8 text-slate-700" />
-          <p>Belum ada data untuk ditampilkan.</p>
-          <p className="text-[11px] text-slate-600">
-            Klik tombol <b>Run Query</b> di kanan atas untuk mengeksekusi visual query ke SAP.
+        <div className="flex-1 flex flex-col items-center justify-center text-slate-400 text-xs space-y-2 select-none bg-slate-50/50">
+          <Database className="w-10 h-10 text-slate-300 stroke-[1.5]" />
+          <p className="font-semibold text-slate-600">Belum ada data untuk ditampilkan</p>
+          <p className="text-[11px] text-slate-400 max-w-sm text-center">
+            Klik tombol <b className="text-sky-600 font-bold">Run Query</b> di kanan atas untuk mengeksekusi visual query ke SAP.
           </p>
         </div>
       )}

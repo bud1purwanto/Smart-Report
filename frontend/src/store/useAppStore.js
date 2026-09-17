@@ -1,12 +1,15 @@
 import { create } from 'zustand';
-import { getServers } from '../services/api';
+import { getServers, getQueries, getQuery } from '../services/api';
+import { useCanvasStore } from './useCanvasStore';
+import { useGridStore } from './useGridStore';
 
 export const useAppStore = create((set, get) => ({
   activeTab: 'studio', // 'studio' | 'compare' | 'schedules' | 'servers'
   servers: [],
   activeServer: null,
-  currentQueryId: 1,
-  currentQueryName: 'PO Price Variance Analysis',
+  savedQueries: [],
+  currentQueryId: null,
+  currentQueryName: 'New QuickView Query',
 
   // Modals
   aiModalOpen: false,
@@ -39,7 +42,6 @@ export const useAppStore = create((set, get) => ({
       const list = res.data || [];
       set({ servers: list });
       if (!get().activeServer && list.length > 0) {
-        // Default to Sandbox New Company or first active
         const def = list.find((s) => s.name.includes('Sandbox New Company')) || list[0];
         set({ activeServer: def });
       }
@@ -47,5 +49,46 @@ export const useAppStore = create((set, get) => ({
       console.error('Failed to load SAP server profiles:', e);
     }
   },
-}));
 
+  loadSavedQueries: async () => {
+    try {
+      const res = await getQueries();
+      set({ savedQueries: res.data || [] });
+    } catch (e) {
+      console.error('Failed to load saved queries:', e);
+    }
+  },
+
+  // Per-Project SQVI: Clear Canvas & Create New Query
+  createNewProject: () => {
+    useCanvasStore.getState().clearCanvas();
+    useGridStore.getState().clearGrid();
+    set({
+      currentQueryId: null,
+      currentQueryName: 'New QuickView Query',
+    });
+    get().showNotification('Kanvas dikosongkan. Siap membuat project query baru.', 'info');
+  },
+
+  // Per-Project SQVI: Select & Load Project Query
+  selectProject: async (queryId) => {
+    if (!queryId) return;
+    try {
+      const res = await getQuery(queryId);
+      const q = res.data;
+      if (q) {
+        set({
+          currentQueryId: q.id,
+          currentQueryName: q.name,
+        });
+        useGridStore.getState().clearGrid();
+        if (q.query_json) {
+          await useCanvasStore.getState().loadQueryDefinition(q.query_json);
+        }
+        get().showNotification(`Project query "${q.name}" berhasil dimuat.`, 'success');
+      }
+    } catch (e) {
+      get().showNotification('Gagal memuat query: ' + e.message, 'error');
+    }
+  },
+}));

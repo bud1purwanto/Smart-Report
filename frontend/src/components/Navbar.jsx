@@ -1,30 +1,42 @@
-import React from 'react';
-import { Play, Sparkles, Plus, Save, Server, CheckCircle2, AlertTriangle } from 'lucide-react';
+import React, { useEffect, useState } from 'react';
+import {
+  Play, Sparkles, Plus, Save, Server, FolderKanban,
+  FilePlus2, ChevronDown, Check, Trash2
+} from 'lucide-react';
 import { useAppStore } from '../store/useAppStore';
 import { useCanvasStore } from '../store/useCanvasStore';
 import { useGridStore } from '../store/useGridStore';
-import { executeQuery, saveQuery, updateQuery } from '../services/api';
+import { executeQuery, saveQuery, updateQuery, deleteQuery } from '../services/api';
 
 export const Navbar = () => {
   const {
     activeServer,
     servers,
     setActiveServer,
-    setAiModalOpen,
-    setTableCatalogOpen,
+    savedQueries,
+    loadSavedQueries,
     currentQueryId,
     currentQueryName,
     setCurrentQuery,
+    createNewProject,
+    selectProject,
+    setAiModalOpen,
+    setTableCatalogOpen,
     showNotification,
   } = useAppStore();
 
   const { getQueryDefinition } = useCanvasStore();
   const { setGridData, setIsExecuting, setError, anonymize, deduplicate, activeVariant, isExecuting } = useGridStore();
+  const [projectDropdownOpen, setProjectDropdownOpen] = useState(false);
+
+  useEffect(() => {
+    loadSavedQueries();
+  }, []);
 
   const handleRunQuery = async () => {
     const queryDef = getQueryDefinition();
     if (!queryDef.tables || queryDef.tables.length === 0) {
-      showNotification('Pilih minimal satu tabel di kanvas terlebih dahulu.', 'warning');
+      showNotification('Pilih atau tambahkan minimal satu tabel di kanvas terlebih dahulu.', 'warning');
       return;
     }
 
@@ -48,94 +60,205 @@ export const Navbar = () => {
 
   const handleSaveQuery = async () => {
     const queryDef = getQueryDefinition();
+    if (!queryDef.tables || queryDef.tables.length === 0) {
+      showNotification('Kanvas masih kosong, tidak ada yang dapat disimpan.', 'warning');
+      return;
+    }
+
     try {
       if (currentQueryId) {
         await updateQuery(currentQueryId, {
           name: currentQueryName,
           query_json: queryDef,
         });
-        showNotification('Query berhasil diperbarui.', 'success');
+        showNotification('Query berhasil disimpan.', 'success');
       } else {
         const res = await saveQuery({
-          name: currentQueryName || 'New SAP Query',
+          name: currentQueryName || 'QuickView Query Baru',
           query_json: queryDef,
         });
         setCurrentQuery(res.data.id, res.data.name);
-        showNotification('Query baru berhasil disimpan.', 'success');
+        showNotification('Query baru berhasil dibuat dan disimpan.', 'success');
       }
+      await loadSavedQueries();
     } catch (err) {
       showNotification('Gagal menyimpan query: ' + err.message, 'error');
     }
   };
 
+  const handleDeleteProject = async (id, e) => {
+    e.stopPropagation();
+    if (confirm('Yakin ingin menghapus query project ini?')) {
+      try {
+        await deleteQuery(id);
+        showNotification('Query berhasil dihapus.', 'info');
+        if (currentQueryId === id) {
+          createNewProject();
+        }
+        await loadSavedQueries();
+      } catch (err) {
+        showNotification('Gagal menghapus: ' + err.message, 'error');
+      }
+    }
+  };
+
   return (
-    <header className="h-14 border-b border-slate-800 bg-slate-900/90 backdrop-blur px-4 flex items-center justify-between z-20 shrink-0">
+    <header className="h-14 border-b border-slate-200/80 bg-white/95 backdrop-blur-md px-4 flex items-center justify-between z-30 shrink-0 shadow-xs">
+      {/* Brand & Project Selector */}
       <div className="flex items-center gap-3">
-        <div className="flex items-center gap-2 font-bold text-lg tracking-tight bg-gradient-to-r from-sky-400 to-indigo-300 bg-clip-text text-transparent">
-          <span className="w-8 h-8 rounded-lg bg-sky-500/20 border border-sky-400/30 flex items-center justify-center text-sky-400 text-sm font-mono">
+        <div className="flex items-center gap-2 font-extrabold text-sm tracking-tight text-slate-900">
+          <span className="w-8 h-8 rounded-lg bg-sky-600 text-white flex items-center justify-center font-mono text-xs shadow-sm">
             SQ
           </span>
-          <span>SMART SQVI</span>
+          <span className="bg-gradient-to-r from-sky-700 to-indigo-700 bg-clip-text text-transparent font-black tracking-tight text-base">
+            SMART SQVI
+          </span>
         </div>
-        <span className="text-slate-600">/</span>
+
+        <span className="text-slate-300">/</span>
+
+        {/* Project Selector Dropdown (PER PROJECT SQVI) */}
+        <div className="relative">
+          <button
+            onClick={() => setProjectDropdownOpen(!projectDropdownOpen)}
+            className="flex items-center gap-2 px-2.5 py-1 rounded-lg border border-slate-200 bg-slate-50 hover:bg-slate-100/80 text-xs font-semibold text-slate-700 transition"
+          >
+            <FolderKanban className="w-3.5 h-3.5 text-sky-600" />
+            <span className="max-w-[160px] truncate">
+              {currentQueryId ? currentQueryName : 'Project Baru (Belum Disimpan)'}
+            </span>
+            <ChevronDown className="w-3 h-3 text-slate-400" />
+          </button>
+
+          {projectDropdownOpen && (
+            <div className="absolute left-0 mt-1.5 w-72 bg-white rounded-xl border border-slate-200 shadow-xl py-1.5 z-50 animate-in fade-in zoom-in-95 duration-150">
+              <div className="px-3 py-1.5 border-b border-slate-100 flex items-center justify-between">
+                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">
+                  Daftar Project SQVI
+                </span>
+                <button
+                  onClick={() => {
+                    createNewProject();
+                    setProjectDropdownOpen(false);
+                  }}
+                  className="flex items-center gap-1 text-[11px] font-bold text-sky-600 hover:text-sky-700"
+                >
+                  <FilePlus2 className="w-3.5 h-3.5" />
+                  <span>+ Buat Baru</span>
+                </button>
+              </div>
+
+              <div className="max-h-56 overflow-y-auto py-1 divide-y divide-slate-50">
+                {savedQueries.map((q) => {
+                  const isCurrent = currentQueryId === q.id;
+                  return (
+                    <div
+                      key={q.id}
+                      onClick={() => {
+                        selectProject(q.id);
+                        setProjectDropdownOpen(false);
+                      }}
+                      className={`px-3 py-2 flex items-center justify-between hover:bg-sky-50/60 cursor-pointer text-xs transition ${
+                        isCurrent ? 'bg-sky-50 text-sky-800 font-bold' : 'text-slate-700'
+                      }`}
+                    >
+                      <div className="truncate mr-2">
+                        <div className="truncate">{q.name}</div>
+                        <div className="text-[10px] text-slate-400 font-normal">
+                          {q.description || 'Tidak ada deskripsi'}
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-1.5 shrink-0">
+                        {isCurrent && <Check className="w-3.5 h-3.5 text-sky-600" />}
+                        <button
+                          onClick={(e) => handleDeleteProject(q.id, e)}
+                          className="text-slate-400 hover:text-red-500 p-1 rounded transition"
+                          title="Hapus Project"
+                        >
+                          <Trash2 className="w-3 h-3" />
+                        </button>
+                      </div>
+                    </div>
+                  );
+                })}
+                {savedQueries.length === 0 && (
+                  <div className="p-3 text-center text-slate-400 text-xs">Belum ada project tersimpan</div>
+                )}
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* Editable Query Title */}
         <input
           type="text"
           value={currentQueryName}
           onChange={(e) => setCurrentQuery(currentQueryId, e.target.value)}
-          className="bg-slate-800/80 hover:bg-slate-800 border border-slate-700/60 focus:border-sky-500 rounded px-2.5 py-1 text-sm text-slate-200 focus:outline-none w-64 transition font-medium"
+          className="bg-slate-100/70 hover:bg-slate-100 border border-slate-200/80 focus:border-sky-500 rounded-lg px-2.5 py-1 text-xs text-slate-800 focus:outline-none w-60 transition font-medium focus:bg-white"
           placeholder="Nama Laporan SAP..."
         />
       </div>
 
-      <div className="flex items-center gap-2.5">
+      {/* Right Actions */}
+      <div className="flex items-center gap-2">
         {/* Active Server Dropdown */}
-        <div className="flex items-center gap-2 bg-slate-800/70 border border-slate-700/60 rounded-lg px-2.5 py-1">
-          <Server className="w-4 h-4 text-sky-400" />
+        <div className="flex items-center gap-2 bg-slate-50 border border-slate-200 rounded-lg px-2.5 py-1">
+          <Server className="w-3.5 h-3.5 text-sky-600" />
           <select
             value={activeServer?.id || ''}
             onChange={(e) => {
               const s = servers.find((srv) => srv.id === parseInt(e.target.value));
               if (s) setActiveServer(s);
             }}
-            className="bg-transparent text-xs text-slate-200 focus:outline-none font-medium cursor-pointer"
+            className="bg-transparent text-xs text-slate-800 focus:outline-none font-semibold cursor-pointer"
           >
             {servers.map((s) => (
-              <option key={s.id} value={s.id} className="bg-slate-900 text-slate-200">
-                {s.name} ({s.sid} / {s.environment.toUpperCase()})
+              <option key={s.id} value={s.id} className="bg-white text-slate-800">
+                {s.name} ({s.sid})
               </option>
             ))}
           </select>
           {activeServer?.environment === 'production' && (
-            <span className="text-[10px] bg-red-500/20 text-red-400 border border-red-500/30 px-1.5 py-0.5 rounded font-mono font-semibold">
+            <span className="text-[10px] bg-red-100 text-red-700 border border-red-200 px-1.5 py-0.2 rounded font-mono font-bold">
               PRD
             </span>
           )}
         </div>
 
+        {/* New Query / Clear Canvas Button (Per Project SQVI) */}
+        <button
+          onClick={createNewProject}
+          className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-slate-100 hover:bg-slate-200/80 text-slate-700 text-xs font-semibold border border-slate-200 transition"
+          title="Kosongkan kanvas untuk membuat query baru"
+        >
+          <FilePlus2 className="w-3.5 h-3.5 text-slate-600" />
+          <span>New Query</span>
+        </button>
+
         {/* AI Assistant Button */}
         <button
           onClick={() => setAiModalOpen(true)}
-          className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-gradient-to-r from-indigo-500/20 to-purple-500/20 hover:from-indigo-500/30 hover:to-purple-500/30 border border-indigo-500/40 text-indigo-300 text-xs font-semibold shadow-sm transition"
+          className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-gradient-to-r from-purple-50 to-indigo-50 hover:from-purple-100 hover:to-indigo-100 border border-indigo-200 text-indigo-700 text-xs font-bold shadow-2xs transition"
         >
-          <Sparkles className="w-3.5 h-3.5 text-indigo-400" />
+          <Sparkles className="w-3.5 h-3.5 text-indigo-600" />
           <span>AI Assistant</span>
         </button>
 
         {/* Add Table Button */}
         <button
           onClick={() => setTableCatalogOpen(true)}
-          className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-200 text-xs font-medium transition"
+          className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-slate-50 hover:bg-slate-100 border border-slate-200 text-slate-700 text-xs font-semibold transition"
         >
-          <Plus className="w-3.5 h-3.5 text-slate-400" />
+          <Plus className="w-3.5 h-3.5 text-sky-600" />
           <span>Tambah Tabel</span>
         </button>
 
         {/* Save Query Button */}
         <button
           onClick={handleSaveQuery}
-          className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-200 text-xs font-medium transition"
+          className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-slate-50 hover:bg-slate-100 border border-slate-200 text-slate-700 text-xs font-semibold transition"
         >
-          <Save className="w-3.5 h-3.5 text-slate-400" />
+          <Save className="w-3.5 h-3.5 text-slate-600" />
           <span>Simpan</span>
         </button>
 
@@ -143,10 +266,10 @@ export const Navbar = () => {
         <button
           onClick={handleRunQuery}
           disabled={isExecuting}
-          className={`flex items-center gap-1.5 px-4 py-1.5 rounded-lg text-xs font-semibold shadow-md transition ${
+          className={`flex items-center gap-1.5 px-4 py-1.5 rounded-lg text-xs font-bold shadow-sm transition ${
             isExecuting
-              ? 'bg-sky-700 text-slate-300 cursor-not-allowed'
-              : 'bg-sky-500 hover:bg-sky-400 text-slate-950 font-bold'
+              ? 'bg-sky-400 text-white cursor-not-allowed'
+              : 'bg-sky-600 hover:bg-sky-500 text-white'
           }`}
         >
           <Play className="w-3.5 h-3.5 fill-current" />
@@ -156,4 +279,3 @@ export const Navbar = () => {
     </header>
   );
 };
-
