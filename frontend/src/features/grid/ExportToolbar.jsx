@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import {
   Download, Shield, CopySlash, Calculator, Bookmark, Check,
-  Clock, Database, EyeOff, FileSpreadsheet
+  Clock, Database, EyeOff, FileSpreadsheet, Maximize2, Minimize2, Columns2, X
 } from 'lucide-react';
 import { useGridStore } from '../../store/useGridStore';
 import { useAppStore } from '../../store/useAppStore';
@@ -19,6 +19,8 @@ export const ExportToolbar = () => {
     variants,
     activeVariant,
     applyVariant,
+    viewMode,
+    setViewMode,
   } = useGridStore();
 
   const { setFormulaModalOpen, setVariantModalOpen, activeServer, showNotification } = useAppStore();
@@ -141,6 +143,41 @@ export const ExportToolbar = () => {
           <FileSpreadsheet className="w-3.5 h-3.5" />
           <span>{isExporting ? 'Mengekspor...' : 'Export Excel'}</span>
         </button>
+
+        <span className="text-slate-300 dark:text-slate-700">|</span>
+
+        {/* View Mode Controls: Split, Full ALV, Close ALV */}
+        <div className="flex items-center gap-0.5 bg-slate-100 dark:bg-slate-800 p-0.5 rounded-lg border border-slate-200 dark:border-slate-700">
+          <button
+            onClick={() => setViewMode('split')}
+            className={`p-1 rounded text-[11px] transition ${
+              viewMode === 'split'
+                ? 'bg-white dark:bg-slate-700 text-sky-600 dark:text-sky-400 font-bold shadow-xs'
+                : 'text-slate-500 hover:text-slate-800 dark:hover:text-slate-200'
+            }`}
+            title="Tampilan Split (Kanvas + ALV Grid)"
+          >
+            <Columns2 className="w-3.5 h-3.5" />
+          </button>
+          <button
+            onClick={() => setViewMode(viewMode === 'grid' ? 'split' : 'grid')}
+            className={`p-1 rounded text-[11px] transition ${
+              viewMode === 'grid'
+                ? 'bg-white dark:bg-slate-700 text-sky-600 dark:text-sky-400 font-bold shadow-xs'
+                : 'text-slate-500 hover:text-slate-800 dark:hover:text-slate-200'
+            }`}
+            title={viewMode === 'grid' ? 'Kembali ke Split' : 'Layar Penuh ALV Grid'}
+          >
+            {viewMode === 'grid' ? <Minimize2 className="w-3.5 h-3.5" /> : <Maximize2 className="w-3.5 h-3.5" />}
+          </button>
+          <button
+            onClick={() => setViewMode('canvas')}
+            className="p-1 rounded text-slate-400 hover:text-red-500 dark:hover:text-red-400 transition"
+            title="Tutup ALV (Kembali ke Kanvas Penuh)"
+          >
+            <X className="w-3.5 h-3.5" />
+          </button>
+        </div>
       </div>
     </div>
   );

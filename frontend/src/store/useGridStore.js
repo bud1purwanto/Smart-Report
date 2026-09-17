@@ -19,6 +19,10 @@ export const useGridStore = create((set, get) => ({
   anonymize: false,
   deduplicate: false,
 
+  // Viewport display mode: 'canvas' (Full Canvas) | 'split' (Canvas + ALV) | 'grid' (Full ALV)
+  viewMode: 'canvas',
+  setViewMode: (val) => set({ viewMode: val }),
+
   setGridData: ({ columns, column_defs, rows, total_rows, execution_time_ms, abap_sql }) => {
     set({
       columns: columns || [],
@@ -29,10 +33,14 @@ export const useGridStore = create((set, get) => ({
       abapSql: abap_sql || '',
       isExecuting: false,
       error: null,
+      viewMode: 'split', // Automatically open ALV results when query completes
     });
   },
 
-  setIsExecuting: (val) => set({ isExecuting: val }),
+  setIsExecuting: (val) => set({
+    isExecuting: val,
+    ...(val ? { viewMode: 'split' } : {})
+  }),
   setError: (err) => set({ error: err, isExecuting: false }),
   setAnonymize: (val) => set({ anonymize: val }),
   setDeduplicate: (val) => set({ deduplicate: val }),
@@ -121,6 +129,7 @@ export const useGridStore = create((set, get) => ({
       executionTimeMs: 0,
       abapSql: '',
       error: null,
+      viewMode: 'canvas', // Return to full canvas
     });
   },
 }));

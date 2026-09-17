@@ -9,7 +9,8 @@ import {
 import { TableNode } from './TableNode';
 import { useCanvasStore } from '../../store/useCanvasStore';
 import { useAppStore } from '../../store/useAppStore';
-import { Plus, Trash2, Maximize2, Sparkles, Layers, SlidersHorizontal } from 'lucide-react';
+import { useGridStore } from '../../store/useGridStore';
+import { Plus, Trash2, Maximize2, Sparkles, Layers, SlidersHorizontal, Table2 } from 'lucide-react';
 
 export const VisualCanvas = () => {
   const {
@@ -23,6 +24,7 @@ export const VisualCanvas = () => {
   } = useCanvasStore();
 
   const { setTableCatalogOpen, setAiModalOpen, setFilterModalOpen, setJoinModalOpen, theme } = useAppStore();
+  const { totalRows, viewMode, setViewMode } = useGridStore();
 
   const nodeTypes = useMemo(() => ({ tableNode: TableNode }), []);
 
@@ -103,6 +105,19 @@ export const VisualCanvas = () => {
         <Panel position="bottom-left" className="m-3 text-[11px] text-slate-500 dark:text-slate-400 font-mono bg-white/90 dark:bg-slate-900/90 px-3 py-1.5 rounded-xl border border-slate-200 dark:border-slate-800 shadow-2xs backdrop-blur-sm">
           {nodes.length} Tabel · {edges.length} Relasi Join (Auto-Join Aktif)
         </Panel>
+
+        {/* Floating Open ALV Button when Canvas is Full */}
+        {totalRows > 0 && viewMode === 'canvas' && (
+          <Panel position="bottom-center" className="mb-4">
+            <button
+              onClick={() => setViewMode('split')}
+              className="flex items-center gap-2 px-4 py-2 rounded-xl bg-gradient-to-r from-sky-600 to-indigo-600 hover:from-sky-500 hover:to-indigo-500 text-white text-xs font-bold shadow-xl shadow-sky-900/20 border border-sky-400/30 transition transform hover:-translate-y-0.5 cursor-pointer backdrop-blur-md animate-in fade-in zoom-in-95 duration-200"
+            >
+              <Table2 className="w-4 h-4" />
+              <span>Buka Hasil ALV Grid ({totalRows.toLocaleString()} baris)</span>
+            </button>
+          </Panel>
+        )}
       </ReactFlow>
     </div>
   );

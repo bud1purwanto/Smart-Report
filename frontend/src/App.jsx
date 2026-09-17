@@ -16,6 +16,7 @@ import { ScheduleManager } from './features/schedule/ScheduleManager';
 import { ServerManager } from './features/servers/ServerManager';
 import { useAppStore } from './store/useAppStore';
 import { useCanvasStore } from './store/useCanvasStore';
+import { useGridStore } from './store/useGridStore';
 import { getQuery } from './services/api';
 
 export const App = () => {
@@ -28,6 +29,7 @@ export const App = () => {
     notification,
   } = useAppStore();
   const { loadQueryDefinition } = useCanvasStore();
+  const { viewMode } = useGridStore();
 
   useEffect(() => {
     initTheme();
@@ -76,17 +78,33 @@ export const App = () => {
         {/* Dynamic Viewport */}
         <main className="flex-1 flex flex-col overflow-hidden relative bg-slate-50 dark:bg-slate-950">
           {activeTab === 'studio' && (
-            <div className="flex-1 flex flex-col h-full overflow-hidden">
-              {/* Top Viewport: Visual Query Canvas (React Flow) */}
-              <div className="flex-1 relative border-b border-slate-200 dark:border-slate-800 flex flex-col min-h-[340px]">
+            <div className="flex-1 flex flex-col h-full overflow-hidden relative">
+              {/* Visual Query Canvas (React Flow) */}
+              <div
+                className={`relative flex flex-col transition-all duration-300 ${
+                  viewMode === 'canvas'
+                    ? 'flex-1 h-full'
+                    : viewMode === 'split'
+                    ? 'flex-1 min-h-[260px] border-b border-slate-200 dark:border-slate-800'
+                    : 'hidden'
+                }`}
+              >
                 <div className="flex-1 relative">
                   <VisualCanvas />
                 </div>
                 <AbapValidatorPanel />
               </div>
 
-              {/* Bottom Viewport: Next-Gen ALV Grid (AG Grid) */}
-              <div className="h-[380px] flex flex-col bg-white dark:bg-slate-900 shrink-0 border-t border-slate-200 dark:border-slate-800">
+              {/* Next-Gen ALV Grid (AG Grid) - Visible only on query execution or when toggled */}
+              <div
+                className={`flex flex-col bg-white dark:bg-slate-900 transition-all duration-300 ${
+                  viewMode === 'canvas'
+                    ? 'hidden'
+                    : viewMode === 'split'
+                    ? 'h-[400px] shrink-0 border-t border-slate-200 dark:border-slate-800 shadow-xl z-10'
+                    : 'flex-1 h-full'
+                }`}
+              >
                 <ExportToolbar />
                 <div className="flex-1 relative">
                   <AlvGrid />
