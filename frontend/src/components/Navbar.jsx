@@ -348,15 +348,6 @@ export const Navbar = () => {
               <span className="hidden sm:inline">{t('nav.aiAssistant')}</span>
             </button>
 
-            {/* Add Table Button */}
-            <button
-              onClick={() => setTableCatalogOpen(true)}
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-slate-50 dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-200 text-xs font-semibold transition cursor-pointer"
-            >
-              <Plus className="w-3.5 h-3.5 text-sky-600 dark:text-sky-400" />
-              <span className="hidden sm:inline">{t('nav.addTable')}</span>
-            </button>
-
             {/* Selection Parameters / Filter Button (QUERY STUDIO) */}
             <button
               onClick={() => setFilterModalOpen(true)}
@@ -442,16 +433,6 @@ export const Navbar = () => {
                 </select>
               </div>
             </div>
-
-            {/* Add Table Button (COMPARE) */}
-            <button
-              onClick={() => setTableCatalogOpen(true)}
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-50 dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-200 text-xs font-semibold shadow-2xs transition cursor-pointer"
-              title={t('catalog.title')}
-            >
-              <Plus className="w-3.5 h-3.5 text-sky-600 dark:text-sky-400" />
-              <span className="hidden sm:inline">{t('nav.addTable')}</span>
-            </button>
 
             {/* Selection Parameters / Filter Button (COMPARE) */}
             <button
