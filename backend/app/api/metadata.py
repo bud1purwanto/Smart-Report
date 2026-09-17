@@ -43,6 +43,20 @@ def get_table_fields(tablename: str, db: Session = Depends(get_db)):
         raise HTTPException(status_code=404, detail=f"Table {tablename} not found in metadata cache.")
     return fields
 
+# Domain & Entity Primary Keys (High Priority)
+HIGH_PRIORITY_KEYS = {
+    "ATINN", "MATNR", "CHARG", "EBELN", "VBELN", "BELNR", "LIFNR", "KUNNR",
+    "AUFNR", "OBJEK", "WERKS", "LGORT", "BUKRS", "VKORG", "VTWEG", "SPART",
+    "EKORG", "EKGRP", "KOKRS", "PRCTR", "KOSTL", "ANLN1", "POSID", "PSPNR",
+    "EQUNR", "TPLNR", "MBLNR", "BANFN", "KLART", "CLASS", "CLINT", "ATNAM"
+}
+
+# Technical Sequence / Counter / Language Keys (Low Priority for joins)
+LOW_PRIORITY_KEYS = {
+    "ADZHL", "ZEILE", "POSNR", "EBELP", "VBPOS", "SPRAS", "MANDT",
+    "ZAEHL", "COUNTER", "STUFE", "PAGENO", "LINENO", "LFDNR", "KAPAR", "AENNR"
+}
+
 @router.get("/autojoin", response_model=List[AutoJoinRule])
 def suggest_autojoin(
     table_a: str = Query(..., description="First table name"),
@@ -54,6 +68,7 @@ def suggest_autojoin(
     Suggests join condition between table_a and table_b based on:
     1. Foreign Key / Check Table relationship from SAP DDIC (DD08L / checktable)
     2. Primary Key matching column names
+    3. Common cross-table semantic key pairs (e.g. MCH1.CHARG -> AUSP.OBJEK)
     """
     ta = table_a.upper()
     tb = table_b.upper()
@@ -65,12 +80,16 @@ def suggest_autojoin(
         SapMetadataSync.checktable == tb
     ).all()
     for fk in fk_ab:
+        fld = fk.fieldname.upper()
+        if fld == "MANDT":
+            continue
+        conf = 0.75 if fld in LOW_PRIORITY_KEYS else (1.0 if fld in HIGH_PRIORITY_KEYS else 0.98)
         suggestions.append(AutoJoinRule(
             source_table=ta,
             target_table=tb,
             source_field=fk.fieldname,
             target_field=fk.fieldname,
-            confidence=1.0,
+            confidence=conf,
             join_type="INNER",
             description=f"Foreign Key: {ta}.{fk.fieldname} mereferensi Check Table {tb}"
         ))
@@ -80,12 +99,16 @@ def suggest_autojoin(
         SapMetadataSync.checktable == ta
     ).all()
     for fk in fk_ba:
+        fld = fk.fieldname.upper()
+        if fld == "MANDT":
+            continue
+        conf = 0.75 if fld in LOW_PRIORITY_KEYS else (1.0 if fld in HIGH_PRIORITY_KEYS else 0.98)
         suggestions.append(AutoJoinRule(
             source_table=ta,
             target_table=tb,
             source_field=fk.fieldname,
             target_field=fk.fieldname,
-            confidence=1.0,
+            confidence=conf,
             join_type="INNER",
             description=f"Foreign Key: {tb}.{fk.fieldname} mereferensi Check Table {ta}"
         ))
@@ -104,22 +127,72 @@ def suggest_autojoin(
     }
 
     for k_name in keys_a:
-        if k_name in fields_b and k_name != "MANDT":
+        k_upper = k_name.upper()
+        if k_name in fields_b and k_upper != "MANDT":
             # Avoid duplicate if already found in foreign key
             if not any(s.source_field == k_name and s.target_field == k_name for s in suggestions):
                 is_key_in_b = fields_b[k_name].keyflag == "X"
+                if is_key_in_b:
+                    if k_upper in HIGH_PRIORITY_KEYS:
+                        conf = 0.99
+                    elif k_upper in LOW_PRIORITY_KEYS:
+                        conf = 0.70
+                    else:
+                        conf = 0.95
+                else:
+                    if k_upper in HIGH_PRIORITY_KEYS:
+                        conf = 0.92
+                    elif k_upper in LOW_PRIORITY_KEYS:
+                        conf = 0.60
+                    else:
+                        conf = 0.85
+
                 suggestions.append(AutoJoinRule(
                     source_table=ta,
                     target_table=tb,
                     source_field=k_name,
                     target_field=k_name,
-                    confidence=0.95 if is_key_in_b else 0.85,
+                    confidence=conf,
                     join_type="INNER",
                     description=f"Primary Key Match: {k_name} cocok di kedua tabel"
                 ))
 
-    # Sort suggestions by confidence descending
-    suggestions.sort(key=lambda x: x.confidence, reverse=True)
+    # 3. Known cross-table domain key joins (e.g. MCH1/MCHA/MARA -> AUSP classification)
+    if (ta in ("MCH1", "MCHA") and tb == "AUSP") or (tb in ("MCH1", "MCHA") and ta == "AUSP"):
+        src_t, tgt_t = (ta, tb) if ta in ("MCH1", "MCHA") else (tb, ta)
+        if not any(s.source_field in ("CHARG", "OBJEK") and s.target_field in ("CHARG", "OBJEK") for s in suggestions):
+            suggestions.append(AutoJoinRule(
+                source_table=src_t,
+                target_table=tgt_t,
+                source_field="CHARG",
+                target_field="OBJEK",
+                confidence=0.96,
+                join_type="INNER",
+                description="Classification Match: Batch CHARG -> AUSP.OBJEK"
+            ))
+
+    if (ta == "MARA" and tb == "AUSP") or (tb == "MARA" and ta == "AUSP"):
+        src_t, tgt_t = (ta, tb) if ta == "MARA" else (tb, ta)
+        if not any(s.source_field in ("MATNR", "OBJEK") and s.target_field in ("MATNR", "OBJEK") for s in suggestions):
+            suggestions.append(AutoJoinRule(
+                source_table=src_t,
+                target_table=tgt_t,
+                source_field="MATNR",
+                target_field="OBJEK",
+                confidence=0.96,
+                join_type="INNER",
+                description="Classification Match: Material MATNR -> AUSP.OBJEK"
+            ))
+
+    # Sort suggestions by confidence descending, then by priority key bonus
+    suggestions.sort(
+        key=lambda x: (
+            x.confidence,
+            1 if x.source_field.upper() in HIGH_PRIORITY_KEYS else 0,
+            0 if x.source_field.upper() in LOW_PRIORITY_KEYS else 1
+        ),
+        reverse=True
+    )
     return suggestions
 
 @router.post("/sync/{tablename}")

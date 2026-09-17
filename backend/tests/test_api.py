@@ -34,6 +34,20 @@ def test_metadata_tables_and_autojoin():
     assert len(suggestions) > 0
     assert any(s["source_field"] == "EBELN" and s["target_field"] == "EBELN" for s in suggestions)
 
+    # Test auto-join suggestion between AUSP and CABN: ATINN must be top ranked over ADZHL
+    aj_ausp_cabn = client.get("/api/v1/metadata/autojoin?table_a=AUSP&table_b=CABN")
+    assert aj_ausp_cabn.status_code == 200
+    s_ausp_cabn = aj_ausp_cabn.json()
+    if len(s_ausp_cabn) > 0:
+        assert s_ausp_cabn[0]["source_field"] == "ATINN"
+        assert s_ausp_cabn[0]["target_field"] == "ATINN"
+
+    # Test auto-join suggestion between MCH1 and AUSP: CHARG -> OBJEK
+    aj_mch1_ausp = client.get("/api/v1/metadata/autojoin?table_a=MCH1&table_b=AUSP")
+    assert aj_mch1_ausp.status_code == 200
+    s_mch1_ausp = aj_mch1_ausp.json()
+    assert any(s["source_field"] == "CHARG" and s["target_field"] == "OBJEK" for s in s_mch1_ausp)
+
 def test_query_validation_and_crud():
     # Valid query
     query_payload = {

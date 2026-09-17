@@ -144,6 +144,20 @@ async def fetch_query_dataset(
     if df.empty or len(tables) == 1:
         return df
 
+    # Domain & Entity Primary Keys (High Priority)
+    HIGH_PRIORITY_KEYS = {
+        "ATINN", "MATNR", "CHARG", "EBELN", "VBELN", "BELNR", "LIFNR", "KUNNR",
+        "AUFNR", "OBJEK", "WERKS", "LGORT", "BUKRS", "VKORG", "VTWEG", "SPART",
+        "EKORG", "EKGRP", "KOKRS", "PRCTR", "KOSTL", "ANLN1", "POSID", "PSPNR",
+        "EQUNR", "TPLNR", "MBLNR", "BANFN", "KLART", "CLASS", "CLINT", "ATNAM"
+    }
+
+    # Technical Sequence / Counter / Language Keys (Low Priority for join propagation)
+    LOW_PRIORITY_KEYS = {
+        "ADZHL", "ZEILE", "POSNR", "EBELP", "VBPOS", "SPRAS", "MANDT",
+        "ZAEHL", "COUNTER", "STUFE", "PAGENO", "LINENO", "LFDNR", "KAPAR", "AENNR"
+    }
+
     # 2. Secondary tables
     for t in tables[1:]:
         sec_table = t.table.upper()
@@ -163,109 +177,167 @@ async def fetch_query_dataset(
             if (j.targetTableId == sec_node_id or tgt_tbl == sec_table) and j.targetField.upper() not in sec_fields:
                 sec_fields.append(j.targetField.upper())
 
-        # Find join connecting to this table
-        join_cond = next((j for j in joins if j.sourceTableId == sec_node_id or j.targetTableId == sec_node_id), None)
-        if not join_cond:
-            join_cond = next((j for j in joins if (j.sourceField and j.targetField)), None)
+        # Collect all joins referencing this secondary table node
+        matching_joins = [
+            j for j in joins
+            if (j.sourceTableId == sec_node_id or j.targetTableId == sec_node_id)
+        ]
+        if not matching_joins:
+            # Fallback by table name match
+            matching_joins = [
+                j for j in joins
+                if any(tn.table.upper() == sec_table for tn in tables if tn.id in (j.sourceTableId, j.targetTableId))
+            ]
 
-        if join_cond:
-            if join_cond.sourceTableId == sec_node_id:
-                sec_join_field = join_cond.sourceField.upper()
-                prim_join_field = join_cond.targetField.upper()
+        # User-defined filters for secondary table
+        sec_user_filters = []
+        for flt in filters:
+            cond = parse_filter_condition(flt, sec_table)
+            if cond:
+                sec_user_filters.append(cond)
+
+        # Build join pairs: (primary_field_in_df, secondary_field, join_type)
+        join_pairs = []
+        for j in matching_joins:
+            if j.sourceTableId == sec_node_id:
+                s_fld = j.sourceField.upper()
+                p_fld = j.targetField.upper()
             else:
-                sec_join_field = join_cond.targetField.upper()
-                prim_join_field = join_cond.sourceField.upper()
+                s_fld = j.targetField.upper()
+                p_fld = j.sourceField.upper()
+            join_pairs.append((p_fld, s_fld, j.joinType))
 
-            # User-defined filters for secondary table
-            sec_user_filters = []
-            for flt in filters:
-                cond = parse_filter_condition(flt, sec_table)
-                if cond:
-                    sec_user_filters.append(cond)
+        # Select the best field pair for RFC WHERE key propagation
+        prop_p_fld = None
+        prop_s_fld = None
+        for p_fld, s_fld, _ in join_pairs:
+            if p_fld in df.columns:
+                if p_fld in HIGH_PRIORITY_KEYS or s_fld in HIGH_PRIORITY_KEYS:
+                    prop_p_fld, prop_s_fld = p_fld, s_fld
+                    break
+                elif p_fld not in LOW_PRIORITY_KEYS and s_fld not in LOW_PRIORITY_KEYS:
+                    if prop_p_fld is None:
+                        prop_p_fld, prop_s_fld = p_fld, s_fld
+                elif prop_p_fld is None:
+                    prop_p_fld, prop_s_fld = p_fld, s_fld
 
-            # Key propagation filter from primary table
-            key_clauses = []
-            if prim_join_field in df.columns:
-                unique_vals = [str(v).strip() for v in df[prim_join_field].dropna().unique() if str(v).strip()][:25]
-                for v in unique_vals:
-                    key_clauses.append(f"{sec_join_field} = '{v}'")
-                    # SAP Alpha conversion & Object Key padding handling (e.g. AUSP-OBJEK 18 chars, MATNR, CHARG)
-                    if sec_join_field in ("OBJEK", "MATNR", "CHARG", "KUNNR", "LIFNR", "VBELN", "EBELN", "BELNR"):
-                        if len(v) < 18 and v.isdigit():
-                            zfilled18 = v.zfill(18)
-                            if f"{sec_join_field} = '{zfilled18}'" not in key_clauses:
-                                key_clauses.append(f"{sec_join_field} = '{zfilled18}'")
-                        if len(v) < 10 and v.isdigit():
-                            zfilled10 = v.zfill(10)
-                            if f"{sec_join_field} = '{zfilled10}'" not in key_clauses:
-                                key_clauses.append(f"{sec_join_field} = '{zfilled10}'")
+        # Key propagation filter from primary / previous tables
+        key_clauses = []
+        if prop_p_fld and prop_s_fld and prop_p_fld in df.columns:
+            unique_vals = [str(v).strip() for v in df[prop_p_fld].dropna().unique() if str(v).strip()][:30]
+            for v in unique_vals:
+                key_clauses.append(f"{prop_s_fld} = '{v}'")
+                # SAP Alpha conversion & Object Key padding handling (e.g. AUSP-OBJEK 18 chars, MATNR, CHARG)
+                if prop_s_fld in ("OBJEK", "MATNR", "CHARG", "KUNNR", "LIFNR", "VBELN", "EBELN", "BELNR"):
+                    if len(v) < 18 and v.isdigit():
+                        zfilled18 = v.zfill(18)
+                        if f"{prop_s_fld} = '{zfilled18}'" not in key_clauses:
+                            key_clauses.append(f"{prop_s_fld} = '{zfilled18}'")
+                    if len(v) < 10 and v.isdigit():
+                        zfilled10 = v.zfill(10)
+                        if f"{prop_s_fld} = '{zfilled10}'" not in key_clauses:
+                            key_clauses.append(f"{prop_s_fld} = '{zfilled10}'")
 
-            formatted_sec_where = []
-            if sec_user_filters:
-                formatted_sec_where.extend(build_rfc_where_clauses(sec_user_filters, connector="AND"))
-            if key_clauses:
-                formatted_key_where = build_rfc_where_clauses(key_clauses, connector="OR")
-                if formatted_sec_where:
-                    formatted_sec_where[-1] = f"{formatted_sec_where[-1]} AND"
-                formatted_sec_where.extend(formatted_key_where)
+        formatted_sec_where = []
+        if sec_user_filters:
+            formatted_sec_where.extend(build_rfc_where_clauses(sec_user_filters, connector="AND"))
+        if key_clauses:
+            formatted_key_where = build_rfc_where_clauses(key_clauses, connector="OR")
+            if formatted_sec_where:
+                formatted_sec_where[-1] = f"{formatted_sec_where[-1]} AND"
+            formatted_sec_where.extend(formatted_key_where)
 
-            # Read secondary table with try/except fallback
-            df_sec = pd.DataFrame()
+        # Read secondary table with try/except fallback
+        df_sec = pd.DataFrame()
+        try:
+            res_sec = await sap_gateway.read_table(
+                server_profile=server_profile,
+                table=sec_table,
+                fields=sec_fields if sec_fields else None,
+                where=formatted_sec_where if formatted_sec_where else None,
+                rowcount=rowcount * 5
+            )
+            df_sec = pd.DataFrame(res_sec.get("rows", []))
+        except Exception as sec_err:
+            logger.warning(f"Failed to read {sec_table} with key propagation: {sec_err}. Falling back to user filters only.")
+            fallback_where = build_rfc_where_clauses(sec_user_filters, connector="AND") if sec_user_filters else None
             try:
                 res_sec = await sap_gateway.read_table(
                     server_profile=server_profile,
                     table=sec_table,
                     fields=sec_fields if sec_fields else None,
-                    where=formatted_sec_where if formatted_sec_where else None,
+                    where=fallback_where,
                     rowcount=rowcount * 5
                 )
                 df_sec = pd.DataFrame(res_sec.get("rows", []))
-            except Exception as sec_err:
-                logger.warning(f"Failed to read {sec_table} with key propagation: {sec_err}. Falling back to user filters only.")
-                fallback_where = build_rfc_where_clauses(sec_user_filters, connector="AND") if sec_user_filters else None
-                try:
-                    res_sec = await sap_gateway.read_table(
-                        server_profile=server_profile,
-                        table=sec_table,
-                        fields=sec_fields if sec_fields else None,
-                        where=fallback_where,
-                        rowcount=rowcount * 5
-                    )
-                    df_sec = pd.DataFrame(res_sec.get("rows", []))
-                except Exception as fallback_err:
-                    logger.error(f"Fallback read for {sec_table} also failed: {fallback_err}")
-                    df_sec = pd.DataFrame()
+            except Exception as fallback_err:
+                logger.error(f"Fallback read for {sec_table} also failed: {fallback_err}")
+                df_sec = pd.DataFrame()
 
-            if not df_sec.empty and prim_join_field in df.columns and sec_join_field in df_sec.columns:
-                how_type = "left" if "LEFT" in (join_cond.joinType or "").upper() else "inner"
-                
-                # Check direct match
-                merged_test = pd.merge(
-                    df,
-                    df_sec,
-                    left_on=prim_join_field,
-                    right_on=sec_join_field,
-                    how=how_type,
-                    suffixes=('', f'_{sec_table}')
-                )
-                
-                # If direct match succeeded and found rows
-                if not merged_test.empty and (how_type == "inner" or merged_test[sec_join_field].notna().any()):
-                    df = merged_test
-                else:
-                    # Match with stripped leading zeros (handles alpha padding mismatch like CHARG 10 vs OBJEK 18)
-                    df['_k_prim'] = df[prim_join_field].astype(str).str.strip().str.lstrip('0')
-                    df_sec['_k_sec'] = df_sec[sec_join_field].astype(str).str.strip().str.lstrip('0')
-                    
-                    df = pd.merge(
+        if not df_sec.empty and join_pairs:
+            # Determine join type
+            how_type = "left" if any("LEFT" in (j_type or "").upper() for (_, _, j_type) in join_pairs) else "inner"
+
+            # Filter valid join keys present in dataframes
+            left_keys = [p for (p, s, _) in join_pairs if p in df.columns and s in df_sec.columns]
+            right_keys = [s for (p, s, _) in join_pairs if p in df.columns and s in df_sec.columns]
+
+            if left_keys and right_keys:
+                if len(left_keys) == 1:
+                    lk = left_keys[0]
+                    rk = right_keys[0]
+                    # Direct match
+                    merged_test = pd.merge(
                         df,
                         df_sec,
-                        left_on='_k_prim',
-                        right_on='_k_sec',
+                        left_on=lk,
+                        right_on=rk,
                         how=how_type,
                         suffixes=('', f'_{sec_table}')
                     )
-                    df.drop(columns=['_k_prim', '_k_sec'], inplace=True, errors='ignore')
+                    if not merged_test.empty and (how_type == "inner" or merged_test[rk].notna().any()):
+                        df = merged_test
+                    else:
+                        # Match with stripped leading zeros (handles alpha padding mismatch like CHARG 10 vs OBJEK 18)
+                        df['_k_prim'] = df[lk].astype(str).str.strip().str.lstrip('0')
+                        df_sec['_k_sec'] = df_sec[rk].astype(str).str.strip().str.lstrip('0')
+
+                        df = pd.merge(
+                            df,
+                            df_sec,
+                            left_on='_k_prim',
+                            right_on='_k_sec',
+                            how=how_type,
+                            suffixes=('', f'_{sec_table}')
+                        )
+                        df.drop(columns=['_k_prim', '_k_sec'], inplace=True, errors='ignore')
+                else:
+                    # Compound match
+                    merged_test = pd.merge(
+                        df,
+                        df_sec,
+                        left_on=left_keys,
+                        right_on=right_keys,
+                        how=how_type,
+                        suffixes=('', f'_{sec_table}')
+                    )
+                    if not merged_test.empty and (how_type == "inner" or any(merged_test[rk].notna().any() for rk in right_keys)):
+                        df = merged_test
+                    else:
+                        # Compound stripped match
+                        for idx, (lk, rk) in enumerate(zip(left_keys, right_keys)):
+                            df[f'_k_prim_{idx}'] = df[lk].astype(str).str.strip().str.lstrip('0')
+                            df_sec[f'_k_sec_{idx}'] = df_sec[rk].astype(str).str.strip().str.lstrip('0')
+
+                        df = pd.merge(
+                            df,
+                            df_sec,
+                            left_on=[f'_k_prim_{i}' for i in range(len(left_keys))],
+                            right_on=[f'_k_sec_{i}' for i in range(len(right_keys))],
+                            how=how_type,
+                            suffixes=('', f'_{sec_table}')
+                        )
+                        df.drop(columns=[f'_k_prim_{i}' for i in range(len(left_keys))] + [f'_k_sec_{i}' for i in range(len(right_keys))], inplace=True, errors='ignore')
 
     return df
 
