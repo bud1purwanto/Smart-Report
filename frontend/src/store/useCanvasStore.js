@@ -141,7 +141,21 @@ export const useCanvasStore = create((set, get) => ({
 
   updateEdgeData: (edgeId, data) => {
     set({
-      edges: get().edges.map((e) => (e.id === edgeId ? { ...e, data: { ...e.data, ...data } } : e)),
+      edges: get().edges.map((e) => {
+        if (e.id === edgeId) {
+          const updatedData = { ...e.data, ...data };
+          const isLeft = updatedData.joinType === 'LEFT OUTER';
+          return {
+            ...e,
+            label: isLeft ? 'LEFT JOIN' : '',
+            labelStyle: { fill: '#38bdf8', fontWeight: 700, fontSize: 10 },
+            labelBgStyle: { fill: '#0f172a', fillOpacity: 0.85, rx: 4, ry: 4 },
+            style: isLeft ? { stroke: '#38bdf8', strokeDasharray: '5,5' } : undefined,
+            data: updatedData,
+          };
+        }
+        return e;
+      }),
     });
   },
 
@@ -157,6 +171,7 @@ export const useCanvasStore = create((set, get) => ({
     );
     if (exists) return false;
 
+    const isLeft = joinType === 'LEFT OUTER';
     const newEdge = {
       id: edgeId,
       source: sourceNodeId,
@@ -165,6 +180,10 @@ export const useCanvasStore = create((set, get) => ({
       targetHandle: targetField,
       type: 'smoothstep',
       animated: true,
+      label: isLeft ? 'LEFT JOIN' : '',
+      labelStyle: { fill: '#38bdf8', fontWeight: 700, fontSize: 10 },
+      labelBgStyle: { fill: '#0f172a', fillOpacity: 0.85, rx: 4, ry: 4 },
+      style: isLeft ? { stroke: '#38bdf8', strokeDasharray: '5,5' } : undefined,
       data: {
         joinType,
         sourceField,

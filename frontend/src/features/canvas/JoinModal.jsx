@@ -1,5 +1,5 @@
 import React from 'react';
-import { X, Trash2 } from 'lucide-react';
+import { X, Trash2, CheckCircle2, Circle } from 'lucide-react';
 import { useAppStore } from '../../store/useAppStore';
 import { useCanvasStore } from '../../store/useCanvasStore';
 
@@ -28,17 +28,26 @@ export const JoinModal = () => {
 
   // Edit Mode
   if (activeEdgeForEdit) {
-    const sourceNode = nodes.find((n) => n.id === activeEdgeForEdit.source);
-    const targetNode = nodes.find((n) => n.id === activeEdgeForEdit.target);
-    const joinData = activeEdgeForEdit.data || {};
+    const liveEdge = edges.find((e) => e.id === activeEdgeForEdit.id) || activeEdgeForEdit;
+    const sourceNode = nodes.find((n) => n.id === liveEdge.source);
+    const targetNode = nodes.find((n) => n.id === liveEdge.target);
+    const joinData = liveEdge.data || {};
     const currentJoinType = joinData.joinType || 'INNER';
 
     const handleTypeChange = (newType) => {
-      updateEdgeData(activeEdgeForEdit.id, { joinType: newType });
+      updateEdgeData(liveEdge.id, { joinType: newType });
+      setJoinModalOpen(true, {
+        ...liveEdge,
+        data: {
+          ...joinData,
+          joinType: newType,
+        },
+      });
+      showNotification(`Tipe relasi diubah menjadi ${newType} JOIN`, 'info');
     };
 
     const handleDelete = () => {
-      removeEdge(activeEdgeForEdit.id);
+      removeEdge(liveEdge.id);
       setJoinModalOpen(false);
     };
 
@@ -96,28 +105,52 @@ export const JoinModal = () => {
         {/* Join Type Selector */}
         <div className="space-y-2">
           <label className="text-xs font-bold text-slate-700 dark:text-slate-300">Tipe Join (ABAP Open SQL):</label>
-          <div className="grid grid-cols-2 gap-2">
+          <div className="grid grid-cols-2 gap-3">
             <button
+              type="button"
               onClick={() => handleTypeChange('INNER')}
-              className={`p-3 rounded-xl border text-xs font-medium text-left transition ${
+              className={`p-3 rounded-xl border text-xs font-medium text-left transition cursor-pointer flex items-start gap-2.5 ${
                 currentJoinType === 'INNER'
-                  ? 'bg-sky-50 dark:bg-sky-950/60 border-sky-400 dark:border-sky-500 text-sky-800 dark:text-sky-200 ring-2 ring-sky-200 dark:ring-sky-800'
-                  : 'bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700/60'
+                  ? 'bg-sky-50 dark:bg-sky-950/80 border-sky-500 dark:border-sky-400 text-sky-950 dark:text-sky-100 ring-2 ring-sky-300 dark:ring-sky-700 shadow-sm'
+                  : 'bg-white dark:bg-slate-800/90 border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-200 hover:border-sky-400 hover:bg-slate-50 dark:hover:bg-slate-700/60'
               }`}
             >
-              <div className="font-bold">INNER JOIN</div>
-              <div className="text-[10px] text-slate-500 dark:text-slate-400 mt-0.5">Hanya baris dengan kecocokan di kedua tabel</div>
+              <div className="mt-0.5 shrink-0">
+                {currentJoinType === 'INNER' ? (
+                  <CheckCircle2 className="w-4 h-4 text-sky-600 dark:text-sky-400" />
+                ) : (
+                  <Circle className="w-4 h-4 text-slate-400" />
+                )}
+              </div>
+              <div>
+                <div className="font-bold text-sm">INNER JOIN</div>
+                <div className="text-[10px] text-slate-500 dark:text-slate-400 mt-0.5">
+                  Hanya baris dengan kecocokan di kedua tabel
+                </div>
+              </div>
             </button>
             <button
+              type="button"
               onClick={() => handleTypeChange('LEFT OUTER')}
-              className={`p-3 rounded-xl border text-xs font-medium text-left transition ${
+              className={`p-3 rounded-xl border text-xs font-medium text-left transition cursor-pointer flex items-start gap-2.5 ${
                 currentJoinType === 'LEFT OUTER'
-                  ? 'bg-sky-50 dark:bg-sky-950/60 border-sky-400 dark:border-sky-500 text-sky-800 dark:text-sky-200 ring-2 ring-sky-200 dark:ring-sky-800'
-                  : 'bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700/60'
+                  ? 'bg-sky-50 dark:bg-sky-950/80 border-sky-500 dark:border-sky-400 text-sky-950 dark:text-sky-100 ring-2 ring-sky-300 dark:ring-sky-700 shadow-sm'
+                  : 'bg-white dark:bg-slate-800/90 border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-200 hover:border-sky-400 hover:bg-slate-50 dark:hover:bg-slate-700/60'
               }`}
             >
-              <div className="font-bold">LEFT OUTER JOIN</div>
-              <div className="text-[10px] text-slate-500 dark:text-slate-400 mt-0.5">Semua baris tabel sumber + kecocokan tujuan</div>
+              <div className="mt-0.5 shrink-0">
+                {currentJoinType === 'LEFT OUTER' ? (
+                  <CheckCircle2 className="w-4 h-4 text-sky-600 dark:text-sky-400" />
+                ) : (
+                  <Circle className="w-4 h-4 text-slate-400" />
+                )}
+              </div>
+              <div>
+                <div className="font-bold text-sm">LEFT OUTER JOIN</div>
+                <div className="text-[10px] text-slate-500 dark:text-slate-400 mt-0.5">
+                  Semua baris tabel sumber + kecocokan tujuan
+                </div>
+              </div>
             </button>
           </div>
         </div>
@@ -297,30 +330,52 @@ export const JoinModal = () => {
                 <label className="text-xs font-bold text-slate-700 dark:text-slate-300 mb-1 block">
                   Tipe Join:
                 </label>
-                <div className="grid grid-cols-2 gap-2">
+                <div className="grid grid-cols-2 gap-3">
                   <button
                     type="button"
                     onClick={() => setNewJoinType('INNER')}
-                    className={`p-2.5 rounded-lg border text-xs font-medium text-left transition cursor-pointer ${
+                    className={`p-3 rounded-xl border text-xs font-medium text-left transition cursor-pointer flex items-start gap-2.5 ${
                       newJoinType === 'INNER'
-                        ? 'bg-sky-50 dark:bg-sky-950/60 border-sky-400 dark:border-sky-500 text-sky-800 dark:text-sky-200 ring-2 ring-sky-200 dark:ring-sky-800'
-                        : 'bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300'
+                        ? 'bg-sky-50 dark:bg-sky-950/80 border-sky-500 dark:border-sky-400 text-sky-950 dark:text-sky-100 ring-2 ring-sky-300 dark:ring-sky-700 shadow-sm'
+                        : 'bg-white dark:bg-slate-800/90 border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-200 hover:border-sky-400 hover:bg-slate-50 dark:hover:bg-slate-700/60'
                     }`}
                   >
-                    <div className="font-bold">INNER JOIN</div>
-                    <div className="text-[10px] text-slate-400">Hanya baris dengan kecocokan di kedua tabel</div>
+                    <div className="mt-0.5 shrink-0">
+                      {newJoinType === 'INNER' ? (
+                        <CheckCircle2 className="w-4 h-4 text-sky-600 dark:text-sky-400" />
+                      ) : (
+                        <Circle className="w-4 h-4 text-slate-400" />
+                      )}
+                    </div>
+                    <div>
+                      <div className="font-bold text-sm">INNER JOIN</div>
+                      <div className="text-[10px] text-slate-500 dark:text-slate-400 mt-0.5">
+                        Hanya baris dengan kecocokan di kedua tabel
+                      </div>
+                    </div>
                   </button>
                   <button
                     type="button"
                     onClick={() => setNewJoinType('LEFT OUTER')}
-                    className={`p-2.5 rounded-lg border text-xs font-medium text-left transition cursor-pointer ${
+                    className={`p-3 rounded-xl border text-xs font-medium text-left transition cursor-pointer flex items-start gap-2.5 ${
                       newJoinType === 'LEFT OUTER'
-                        ? 'bg-sky-50 dark:bg-sky-950/60 border-sky-400 dark:border-sky-500 text-sky-800 dark:text-sky-200 ring-2 ring-sky-200 dark:ring-sky-800'
-                        : 'bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300'
+                        ? 'bg-sky-50 dark:bg-sky-950/80 border-sky-500 dark:border-sky-400 text-sky-950 dark:text-sky-100 ring-2 ring-sky-300 dark:ring-sky-700 shadow-sm'
+                        : 'bg-white dark:bg-slate-800/90 border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-200 hover:border-sky-400 hover:bg-slate-50 dark:hover:bg-slate-700/60'
                     }`}
                   >
-                    <div className="font-bold">LEFT OUTER JOIN</div>
-                    <div className="text-[10px] text-slate-400">Semua baris tabel sumber + kecocokan tujuan</div>
+                    <div className="mt-0.5 shrink-0">
+                      {newJoinType === 'LEFT OUTER' ? (
+                        <CheckCircle2 className="w-4 h-4 text-sky-600 dark:text-sky-400" />
+                      ) : (
+                        <Circle className="w-4 h-4 text-slate-400" />
+                      )}
+                    </div>
+                    <div>
+                      <div className="font-bold text-sm">LEFT OUTER JOIN</div>
+                      <div className="text-[10px] text-slate-500 dark:text-slate-400 mt-0.5">
+                        Semua baris tabel sumber + kecocokan tujuan
+                      </div>
+                    </div>
                   </button>
                 </div>
               </div>
