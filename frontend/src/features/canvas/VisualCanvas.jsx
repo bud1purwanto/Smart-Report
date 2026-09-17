@@ -1,4 +1,4 @@
-import React, { useMemo, useCallback } from 'react';
+import React, { useMemo, useCallback, useEffect } from 'react';
 import {
   ReactFlow,
   Background,
@@ -10,13 +10,15 @@ import { TableNode } from './TableNode';
 import { useCanvasStore } from '../../store/useCanvasStore';
 import { useAppStore } from '../../store/useAppStore';
 import { useGridStore } from '../../store/useGridStore';
-import { Plus, Trash2, Maximize2, Sparkles, Layers, SlidersHorizontal, Table2 } from 'lucide-react';
+import { Plus, Trash2, Maximize2, Sparkles, Layers, SlidersHorizontal, Table2, GitFork, Link2 } from 'lucide-react';
 
 export const VisualCanvas = () => {
   const {
     nodes,
     edges,
     filters,
+    pendingConnection,
+    setPendingConnection,
     onNodesChange,
     onEdgesChange,
     onConnect,
@@ -27,6 +29,16 @@ export const VisualCanvas = () => {
   const { totalRows, viewMode, setViewMode } = useGridStore();
 
   const nodeTypes = useMemo(() => ({ tableNode: TableNode }), []);
+
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      if (e.key === 'Escape' && pendingConnection) {
+        setPendingConnection(null);
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [pendingConnection, setPendingConnection]);
 
   const onEdgeClick = useCallback(
     (_, edge) => {
@@ -91,6 +103,23 @@ export const VisualCanvas = () => {
               </span>
             )}
           </button>
+          <button
+            onClick={() => setJoinModalOpen(true, null)}
+            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl border text-xs font-semibold shadow-xs backdrop-blur-sm transition cursor-pointer ${
+              edges.length > 0
+                ? 'bg-sky-50/95 dark:bg-sky-950/80 border-sky-300 dark:border-sky-700 text-sky-800 dark:text-sky-300'
+                : 'bg-white/95 dark:bg-slate-900/90 hover:bg-slate-50 dark:hover:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-200'
+            }`}
+            title="Kelola atau buat relasi join antar tabel"
+          >
+            <GitFork className="w-3.5 h-3.5 text-sky-600 dark:text-sky-400" />
+            <span>Relasi Join</span>
+            {edges.length > 0 && (
+              <span className="bg-sky-600 text-white text-[10px] font-bold px-1.5 py-0.2 rounded-full">
+                {edges.length}
+              </span>
+            )}
+          </button>
           {nodes.length > 0 && (
             <button
               onClick={clearCanvas}
@@ -101,6 +130,24 @@ export const VisualCanvas = () => {
             </button>
           )}
         </Panel>
+
+        {/* Pending Connection Banner */}
+        {pendingConnection && (
+          <Panel position="top-center" className="mt-3 z-30">
+            <div className="flex items-center gap-3 bg-amber-500 text-slate-950 font-semibold px-4 py-2 rounded-2xl shadow-xl border border-amber-300 animate-pulse text-xs">
+              <Link2 className="w-4 h-4" />
+              <span>
+                Mode Relasi: Klik kolom pada tabel tujuan untuk menghubungkan dengan <strong>{pendingConnection.table}.{pendingConnection.field}</strong>
+              </span>
+              <button
+                onClick={() => setPendingConnection(null)}
+                className="ml-2 px-2.5 py-1 bg-black/20 hover:bg-black/40 rounded-lg text-xs font-bold text-white cursor-pointer transition"
+              >
+                Batal (Esc)
+              </button>
+            </div>
+          </Panel>
+        )}
 
         {/* Active Filters Pill Bar (Top Right) */}
         {filters.length > 0 && (

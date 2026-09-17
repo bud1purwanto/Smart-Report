@@ -83,7 +83,7 @@ export const CompareTableNode = memo(({ id, data }) => {
           return (
             <div
               key={field.fieldname}
-              className={`relative px-3.5 py-1.5 flex items-center justify-between group transition ${
+              className={`relative pl-6 pr-6 py-1.5 flex items-center justify-between group transition ${
                 isSelected ? 'bg-purple-50/80 dark:bg-purple-950/50 text-purple-950 dark:text-purple-200 font-medium' : 'text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800/60'
               }`}
             >
@@ -92,9 +92,9 @@ export const CompareTableNode = memo(({ id, data }) => {
                 type="target"
                 position={Position.Left}
                 id={field.fieldname}
-                className="!bg-purple-500 hover:!bg-amber-400 hover:!scale-150 !w-2.5 !h-2.5 !border-white dark:!border-slate-900 transition-all cursor-crosshair"
-                style={{ left: '-5px' }}
-                title={`Tarik garis relasi join dari/ke kolom ${field.fieldname}`}
+                className="!w-3 !h-3 !rounded-full !bg-purple-500 hover:!bg-amber-400 hover:!scale-150 !border-2 !border-white dark:!border-slate-900 transition-all cursor-crosshair shadow-sm z-20"
+                style={{ left: '6px', top: '50%', transform: 'translateY(-50%)' }}
+                title={`Tarik garis relasi join (Drag & Drop) dari/ke kolom ${field.fieldname}`}
               />
 
               <div
@@ -130,9 +130,9 @@ export const CompareTableNode = memo(({ id, data }) => {
                 type="source"
                 position={Position.Right}
                 id={field.fieldname}
-                className="!bg-purple-500 hover:!bg-amber-400 hover:!scale-150 !w-2.5 !h-2.5 !border-white dark:!border-slate-900 transition-all cursor-crosshair"
-                style={{ right: '-5px' }}
-                title={`Tarik garis relasi join dari/ke kolom ${field.fieldname}`}
+                className="!w-3 !h-3 !rounded-full !bg-purple-500 hover:!bg-amber-400 hover:!scale-150 !border-2 !border-white dark:!border-slate-900 transition-all cursor-crosshair shadow-sm z-20"
+                style={{ right: '6px', top: '50%', transform: 'translateY(-50%)' }}
+                title={`Tarik garis relasi join (Drag & Drop) dari/ke kolom ${field.fieldname}`}
               />
             </div>
           );

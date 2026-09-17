@@ -1,14 +1,22 @@
 import React, { useState, memo } from 'react';
 import { Handle, Position } from '@xyflow/react';
-import { Key, Trash2, Search, CheckSquare, Square, Filter } from 'lucide-react';
+import { Key, Trash2, Search, CheckSquare, Square, Filter, Link2 } from 'lucide-react';
 import { useCanvasStore } from '../../store/useCanvasStore';
 import { useAppStore } from '../../store/useAppStore';
 
 export const TableNode = memo(({ id, data }) => {
   const { table, fields = [] } = data;
   const [filterText, setFilterText] = useState('');
-  const { removeNode, selectedFields, toggleFieldSelection, filters } = useCanvasStore();
-  const { setFilterModalOpen } = useAppStore();
+  const {
+    removeNode,
+    selectedFields,
+    toggleFieldSelection,
+    filters,
+    pendingConnection,
+    setPendingConnection,
+    addJoinEdge,
+  } = useCanvasStore();
+  const { setFilterModalOpen, showNotification } = useAppStore();
 
   const isFieldSelected = (fieldName) => {
     return selectedFields.some((f) => f.tableId === id && f.field === fieldName);
@@ -84,12 +92,61 @@ export const TableNode = memo(({ id, data }) => {
             (f) => f.field === `${table}.${field.fieldname}` || f.field === field.fieldname
           );
           const fullLabel = field.fieldtext ? `${field.fieldname} - ${field.fieldtext}` : field.fieldname;
+          const isPendingSource =
+            pendingConnection?.tableId === id && pendingConnection?.field === field.fieldname;
+          const isPendingTarget =
+            pendingConnection && pendingConnection.tableId !== id;
+
+          const handleRowClick = () => {
+            if (pendingConnection) {
+              if (pendingConnection.tableId !== id) {
+                const ok = addJoinEdge(
+                  pendingConnection.tableId,
+                  pendingConnection.field,
+                  id,
+                  field.fieldname,
+                  'INNER'
+                );
+                if (ok) {
+                  showNotification(
+                    `Relasi join dibuat: ${pendingConnection.table}.${pendingConnection.field} ↔ ${table}.${field.fieldname}`,
+                    'success'
+                  );
+                } else {
+                  showNotification('Relasi join tersebut sudah ada.', 'warning');
+                }
+              } else {
+                setPendingConnection(null);
+              }
+              return;
+            }
+            toggleFieldSelection(id, table, field.fieldname, isKey, field.datatype, field.fieldtext || '');
+          };
+
+          const handleLinkClick = (e) => {
+            e.stopPropagation();
+            if (isPendingSource) {
+              setPendingConnection(null);
+            } else {
+              setPendingConnection({ tableId: id, table, field: field.fieldname });
+              showNotification(
+                `Pilih kolom pada tabel tujuan untuk menghubungkan join dengan ${table}.${field.fieldname}`,
+                'info'
+              );
+            }
+          };
 
           return (
             <div
               key={field.fieldname}
-              className={`relative px-3.5 py-1.5 flex items-center justify-between group transition ${
-                isSelected ? 'bg-sky-50/80 dark:bg-sky-950/50 text-sky-900 dark:text-sky-200 font-medium' : 'text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800/60'
+              className={`relative pl-6 pr-6 py-1.5 flex items-center justify-between group transition ${
+                isPendingSource
+                  ? 'bg-amber-100 dark:bg-amber-950/80 ring-2 ring-amber-400 font-bold'
+                  : isPendingTarget
+                  ? 'hover:bg-amber-50/80 dark:hover:bg-amber-900/30 cursor-pointer'
+                  : isSelected
+                  ? 'bg-sky-50/80 dark:bg-sky-950/50 text-sky-900 dark:text-sky-200 font-medium'
+                  : 'text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800/60'
               }`}
             >
               {/* Target Handle (Left Port for Joins) */}
@@ -97,15 +154,16 @@ export const TableNode = memo(({ id, data }) => {
                 type="target"
                 position={Position.Left}
                 id={field.fieldname}
-                className="!bg-sky-500 hover:!bg-amber-400 hover:!scale-150 !w-2.5 !h-2.5 !border-white dark:!border-slate-900 transition-all cursor-crosshair"
-                style={{ left: '-5px' }}
-                title={`Tarik garis relasi join dari/ke kolom ${field.fieldname}`}
+                className="!w-3 !h-3 !rounded-full !bg-sky-500 hover:!bg-amber-400 hover:!scale-150 !border-2 !border-white dark:!border-slate-900 transition-all cursor-crosshair shadow-sm z-20"
+                style={{ left: '6px', top: '50%', transform: 'translateY(-50%)' }}
+                title={`Tarik garis relasi join (Drag & Drop) dari/ke ${field.fieldname}`}
+                onClick={handleLinkClick}
               />
 
               <div
                 className="flex items-center gap-2 cursor-pointer select-none overflow-hidden flex-1 min-w-0 mr-2"
-                onClick={() => toggleFieldSelection(id, table, field.fieldname, isKey, field.datatype, field.fieldtext || '')}
-                title={fullLabel}
+                onClick={handleRowClick}
+                title={isPendingTarget ? `Klik untuk menghubungkan relasi ke ${table}.${field.fieldname}` : fullLabel}
               >
                 {isSelected ? (
                   <CheckSquare className="w-3.5 h-3.5 text-sky-600 dark:text-sky-400 shrink-0" />
@@ -127,6 +185,19 @@ export const TableNode = memo(({ id, data }) => {
               </div>
 
               <div className="flex items-center gap-1.5 shrink-0 ml-auto mr-1">
+                {/* Link / Connect Trigger */}
+                <button
+                  onClick={handleLinkClick}
+                  className={`p-1 rounded transition cursor-pointer ${
+                    isPendingSource
+                      ? 'text-amber-600 bg-amber-200 dark:bg-amber-800 animate-pulse'
+                      : 'text-slate-300 dark:text-slate-600 hover:text-sky-500 opacity-0 group-hover:opacity-100'
+                  }`}
+                  title={isPendingSource ? 'Klik untuk batalkan' : `Hubungkan relasi Join dari ${table}.${field.fieldname}`}
+                >
+                  <Link2 className="w-3 h-3" />
+                </button>
+
                 {/* Direct Filter / Parameter Trigger */}
                 <button
                   onClick={(e) => {
@@ -153,9 +224,10 @@ export const TableNode = memo(({ id, data }) => {
                 type="source"
                 position={Position.Right}
                 id={field.fieldname}
-                className="!bg-sky-500 hover:!bg-amber-400 hover:!scale-150 !w-2.5 !h-2.5 !border-white dark:!border-slate-900 transition-all cursor-crosshair"
-                style={{ right: '-5px' }}
-                title={`Tarik garis relasi join dari/ke kolom ${field.fieldname}`}
+                className="!w-3 !h-3 !rounded-full !bg-sky-500 hover:!bg-amber-400 hover:!scale-150 !border-2 !border-white dark:!border-slate-900 transition-all cursor-crosshair shadow-sm z-20"
+                style={{ right: '6px', top: '50%', transform: 'translateY(-50%)' }}
+                title={`Tarik garis relasi join (Drag & Drop) dari/ke ${field.fieldname}`}
+                onClick={handleLinkClick}
               />
             </div>
           );

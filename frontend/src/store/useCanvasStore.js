@@ -145,6 +145,36 @@ export const useCanvasStore = create((set, get) => ({
     });
   },
 
+  pendingConnection: null,
+  setPendingConnection: (val) => set({ pendingConnection: val }),
+
+  addJoinEdge: (sourceNodeId, sourceField, targetNodeId, targetField, joinType = 'INNER') => {
+    const edgeId = `e-${sourceNodeId}-${targetNodeId}-${Date.now()}`;
+    const exists = get().edges.some(
+      (e) =>
+        (e.source === sourceNodeId && e.target === targetNodeId && e.sourceHandle === sourceField && e.targetHandle === targetField) ||
+        (e.source === targetNodeId && e.target === sourceNodeId && e.sourceHandle === targetField && e.targetHandle === sourceField)
+    );
+    if (exists) return false;
+
+    const newEdge = {
+      id: edgeId,
+      source: sourceNodeId,
+      target: targetNodeId,
+      sourceHandle: sourceField,
+      targetHandle: targetField,
+      type: 'smoothstep',
+      animated: true,
+      data: {
+        joinType,
+        sourceField,
+        targetField,
+      },
+    };
+    set({ edges: [...get().edges, newEdge], pendingConnection: null });
+    return true;
+  },
+
   removeEdge: (edgeId) => {
     set({
       edges: get().edges.filter((e) => e.id !== edgeId),
@@ -193,7 +223,7 @@ export const useCanvasStore = create((set, get) => ({
   },
 
   clearCanvas: () => {
-    set({ nodes: [], edges: [], selectedFields: [], filters: [] });
+    set({ nodes: [], edges: [], selectedFields: [], filters: [], pendingConnection: null });
   },
 
   loadQueryDefinition: async (queryDef) => {
