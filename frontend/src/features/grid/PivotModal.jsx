@@ -1,7 +1,8 @@
-import React, { useState, useEffect } from 'react';
-import { X, Columns3, Check, RotateCcw, HelpCircle, ArrowRight, Info } from 'lucide-react';
+import React, { useState, useEffect, useMemo } from 'react';
+import { X, Columns3, Check, RotateCcw, ArrowRight, Info, Search, Database } from 'lucide-react';
 import { useAppStore } from '../../store/useAppStore';
 import { useGridStore } from '../../store/useGridStore';
+import { useCanvasStore } from '../../store/useCanvasStore';
 import { useTranslation } from '../../locales/useTranslation';
 
 export const PivotModal = () => {
@@ -10,6 +11,8 @@ export const PivotModal = () => {
   const {
     columns,
     rawColumns,
+    columnDefs,
+    rawColumnDefs,
     isPivoted,
     pivotConfig,
     applyPivot,
@@ -18,8 +21,40 @@ export const PivotModal = () => {
     rawTotalRows,
   } = useGridStore();
 
-  // All available base columns (use rawColumns if already pivoted)
-  const availableColumns = isPivoted && rawColumns.length > 0 ? rawColumns : columns;
+  const { selectedFields } = useCanvasStore();
+
+  // All available base columns (use rawColumns if currently pivoted)
+  const baseColumns = useMemo(() => {
+    if (isPivoted && rawColumns && rawColumns.length > 0) {
+      return rawColumns;
+    }
+    return columns || [];
+  }, [isPivoted, rawColumns, columns]);
+
+  // Map each column to its friendly label / description
+  const columnMetadata = useMemo(() => {
+    const activeDefs = (isPivoted && rawColumnDefs && rawColumnDefs.length > 0) ? rawColumnDefs : columnDefs;
+    const meta = {};
+
+    baseColumns.forEach((col) => {
+      // Look in columnDefs first
+      const def = activeDefs.find((d) => d.field === col);
+      // Look in selectedFields from canvas
+      const sf = (selectedFields || []).find((f) => f.field === col || f.alias === col);
+
+      const label = def?.headerName || sf?.fieldtext || col;
+      const desc = def?.headerTooltip || sf?.fieldtext || '';
+
+      meta[col] = {
+        field: col,
+        headerName: label !== col ? label : col,
+        description: desc && desc !== col ? desc : '',
+        table: sf?.table || '',
+      };
+    });
+
+    return meta;
+  }, [baseColumns, columnDefs, rawColumnDefs, isPivoted, selectedFields]);
 
   const [selectedIndices, setSelectedIndices] = useState([]);
   const [pivotCol, setPivotCol] = useState('');
@@ -27,47 +62,98 @@ export const PivotModal = () => {
   const [aggFunc, setAggFunc] = useState('first');
   const [searchTerm, setSearchTerm] = useState('');
 
-  // Sync state when modal opens
+  // Auto-initialize or sync state when modal opens
   useEffect(() => {
-    if (pivotModalOpen) {
-      if (pivotConfig) {
-        setSelectedIndices(pivotConfig.indexColumns || []);
-        setPivotCol(pivotConfig.pivotColumn || '');
-        setValueCol(pivotConfig.valueColumn || '');
-        setAggFunc(pivotConfig.aggFunc || 'first');
-      } else {
-        // Auto-select initial heuristics (e.g. first 2 columns as index)
-        if (availableColumns.length > 0 && selectedIndices.length === 0) {
-          const autoIndices = availableColumns.slice(0, Math.min(2, availableColumns.length));
-          setSelectedIndices(autoIndices);
-          // Try to detect ATNAM/ATWRT or characteristic columns
-          const possiblePivot = availableColumns.find(
-            (c) => c.toUpperCase().includes('ATNAM') || c.toUpperCase().includes('ATINN') || c.toUpperCase().includes('CHAR')
-          ) || (availableColumns.length > 2 ? availableColumns[2] : '');
-          const possibleVal = availableColumns.find(
-            (c) => c.toUpperCase().includes('ATWRT') || c.toUpperCase().includes('VAL') || c.toUpperCase().includes('VALUE')
-          ) || (availableColumns.length > 3 ? availableColumns[3] : '');
+    if (!pivotModalOpen) return;
 
-          setPivotCol(possiblePivot || '');
-          setValueCol(possibleVal || '');
+    if (pivotConfig) {
+      // Load active config
+      setSelectedIndices(pivotConfig.indexColumns || []);
+      setPivotCol(pivotConfig.pivotColumn || '');
+      setValueCol(pivotConfig.valueColumn || '');
+      setAggFunc(pivotConfig.aggFunc || 'first');
+    } else if (baseColumns.length > 0) {
+      // Heuristic auto-detection for SAP characteristics / EAV tables
+      let detectedPivot = '';
+      let detectedValue = '';
+
+      // 1. Detect Pivot column (ATNAM > ATINN > CHAR_NAME > NAME > KEY)
+      for (const col of baseColumns) {
+        const u = col.toUpperCase();
+        if (u.includes('ATNAM') || u.includes('ATINN') || u.includes('CHARACT') || u.includes('CHAR_NAME')) {
+          detectedPivot = col;
+          break;
         }
       }
+      if (!detectedPivot && baseColumns.length >= 2) {
+        detectedPivot = baseColumns[baseColumns.length - 2];
+      }
+
+      // 2. Detect Value column (ATWRT > ATFLV > VAL > VALUE > AMOUNT > MENGE)
+      for (const col of baseColumns) {
+        if (col === detectedPivot) continue;
+        const u = col.toUpperCase();
+        if (u.includes('ATWRT') || u.includes('ATFLV') || u.includes('VAL') || u.includes('VALUE') || u.includes('AMOUNT')) {
+          detectedValue = col;
+          break;
+        }
+      }
+      if (!detectedValue && baseColumns.length >= 1) {
+        detectedValue = baseColumns[baseColumns.length - 1] !== detectedPivot
+          ? baseColumns[baseColumns.length - 1]
+          : (baseColumns.find((c) => c !== detectedPivot) || '');
+      }
+
+      // 3. Select all remaining columns as fixed index rows
+      const initialIndices = baseColumns.filter(
+        (c) => c !== detectedPivot && c !== detectedValue
+      );
+
+      setSelectedIndices(initialIndices.length > 0 ? initialIndices : [baseColumns[0]]);
+      setPivotCol(detectedPivot);
+      setValueCol(detectedValue);
+      setAggFunc('first');
     }
-  }, [pivotModalOpen, pivotConfig, availableColumns]);
+  }, [pivotModalOpen, pivotConfig, baseColumns]);
 
   if (!pivotModalOpen) return null;
 
+  // Change Pivot Column & automatically remove it from index / value
+  const handlePivotColChange = (newPivot) => {
+    setPivotCol(newPivot);
+    if (newPivot) {
+      setSelectedIndices((prev) => prev.filter((c) => c !== newPivot));
+      if (valueCol === newPivot) {
+        setValueCol('');
+      }
+    }
+  };
+
+  // Change Value Column & automatically remove it from index / pivot
+  const handleValueColChange = (newValue) => {
+    setValueCol(newValue);
+    if (newValue) {
+      setSelectedIndices((prev) => prev.filter((c) => c !== newValue));
+      if (pivotCol === newValue) {
+        setPivotCol('');
+      }
+    }
+  };
+
+  // Toggle Index Checkbox (if selected as pivot or value, automatically frees it up)
   const toggleIndexCol = (col) => {
     if (selectedIndices.includes(col)) {
-      setSelectedIndices(selectedIndices.filter((c) => c !== col));
+      setSelectedIndices((prev) => prev.filter((c) => c !== col));
     } else {
-      setSelectedIndices([...selectedIndices, col]);
+      // Add to index and unset if it was pivot or value
+      setSelectedIndices((prev) => [...prev, col]);
+      if (pivotCol === col) setPivotCol('');
+      if (valueCol === col) setValueCol('');
     }
   };
 
   const selectAllIndices = () => {
-    // Select all except pivotCol and valueCol
-    const valid = availableColumns.filter((c) => c !== pivotCol && c !== valueCol);
+    const valid = baseColumns.filter((c) => c !== pivotCol && c !== valueCol);
     setSelectedIndices(valid);
   };
 
@@ -76,28 +162,24 @@ export const PivotModal = () => {
   };
 
   const handleApply = () => {
-    if (selectedIndices.length === 0) {
-      showNotification(t('pivot.errorNoIndex') || 'Pilih minimal 1 kolom baris tetap (Index Group).', 'warning');
+    // Automatically clean indices by removing any duplicate pivot or value column
+    const cleanIndices = selectedIndices.filter((c) => c !== pivotCol && c !== valueCol);
+
+    if (cleanIndices.length === 0) {
+      showNotification(t('pivot.errorNoIndex') || 'Pilih minimal 1 kolom baris tetap (selain kolom pivot dan nilai).', 'warning');
       return;
     }
     if (!pivotCol) {
-      showNotification(t('pivot.errorNoPivot') || 'Pilih kolom yang akan menjadi Header Pivot.', 'warning');
+      showNotification(t('pivot.errorNoPivot') || 'Pilih kolom yang akan menjadi Header Pivot ke kanan.', 'warning');
       return;
     }
     if (!valueCol) {
       showNotification(t('pivot.errorNoValue') || 'Pilih kolom yang akan mengisi Nilai Sel (Value).', 'warning');
       return;
     }
-    if (selectedIndices.includes(pivotCol) || selectedIndices.includes(valueCol)) {
-      showNotification(
-        t('pivot.errorOverlap') || 'Kolom Pivot Header dan Value tidak boleh dimasukkan ke dalam Baris Tetap.',
-        'warning'
-      );
-      return;
-    }
 
     const res = applyPivot({
-      indexColumns: selectedIndices,
+      indexColumns: cleanIndices,
       pivotColumn: pivotCol,
       valueColumn: valueCol,
       aggFunc,
@@ -121,13 +203,21 @@ export const PivotModal = () => {
     setPivotModalOpen(false);
   };
 
-  const filteredColumns = availableColumns.filter((c) =>
-    c.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const filteredColumns = baseColumns.filter((c) => {
+    const meta = columnMetadata[c];
+    const term = searchTerm.toLowerCase();
+    return (
+      c.toLowerCase().includes(term) ||
+      (meta?.headerName && meta.headerName.toLowerCase().includes(term)) ||
+      (meta?.description && meta.description.toLowerCase().includes(term))
+    );
+  });
+
+  const cleanDisplayIndices = selectedIndices.filter((c) => c !== pivotCol && c !== valueCol);
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-xs p-4">
-      <div className="w-full max-w-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-2xl overflow-hidden p-5 space-y-4 animate-in fade-in zoom-in-95 duration-150 max-h-[90vh] flex flex-col">
+      <div className="w-full max-w-3xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-2xl overflow-hidden p-5 space-y-4 animate-in fade-in zoom-in-95 duration-150 max-h-[90vh] flex flex-col">
         {/* Header */}
         <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3 shrink-0">
           <div className="flex items-center gap-2.5">
@@ -168,7 +258,7 @@ export const PivotModal = () => {
               </span>
               <p className="text-slate-600 dark:text-slate-400 leading-relaxed">
                 {t('pivot.tipDesc') ||
-                  'Pilih MATNR dan CHARG sebagai Baris Tetap. Pilih ATNAM (Nama Karakteristik) sebagai Header Kolom, dan ATWRT (Nilai Karakteristik) sebagai Nilai Sel. Semua nilai karakteristik batch otomatis menjadi kolom tersendiri ke samping!'}
+                  'Pilih MATNR dan CHARG sebagai Baris Tetap. Pilih ATNAM / ATINN (Nama Karakteristik) sebagai Header Kolom, dan ATWRT (Nilai Karakteristik) sebagai Nilai Sel. Semua nilai karakteristik batch otomatis menjadi kolom tersendiri ke samping!'}
               </p>
             </div>
           </div>
@@ -183,6 +273,9 @@ export const PivotModal = () => {
                     1
                   </span>
                   <span>{t('pivot.rowGroupCols') || 'Baris Tetap (Index Group)'}</span>
+                  <span className="text-[10px] text-purple-600 dark:text-purple-400 font-semibold font-mono">
+                    ({cleanDisplayIndices.length})
+                  </span>
                 </label>
                 <div className="flex items-center gap-1 text-[10px]">
                   <button
@@ -203,52 +296,80 @@ export const PivotModal = () => {
                 </div>
               </div>
               <p className="text-[11px] text-slate-500 dark:text-slate-400">
-                {t('pivot.rowGroupDesc') || 'Kolom identitas unik per baris (misal: MATNR, CHARG, WERKS).'}
+                {t('pivot.rowGroupDesc') || 'Kolom identitas per baris (misal: MATNR, CHARG, WERKS).'}
               </p>
 
-              <input
-                type="text"
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                placeholder={t('common.search') || 'Cari kolom...'}
-                className="w-full bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg px-2.5 py-1 text-slate-800 dark:text-slate-100 font-mono text-[11px] focus:outline-none focus:border-purple-500"
-              />
+              {/* Search Bar */}
+              <div className="relative">
+                <Search className="w-3.5 h-3.5 absolute left-2.5 top-2 text-slate-400" />
+                <input
+                  type="text"
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  placeholder={t('common.search') || 'Cari nama kolom atau deskripsi...'}
+                  className="w-full bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg pl-8 pr-2.5 py-1 text-slate-800 dark:text-slate-100 text-[11px] focus:outline-none focus:border-purple-500"
+                />
+              </div>
 
-              <div className="space-y-1 max-h-40 overflow-y-auto border border-slate-200 dark:border-slate-700 rounded-lg p-2 bg-white dark:bg-slate-900">
-                {filteredColumns.map((col) => {
-                  const isChecked = selectedIndices.includes(col);
-                  const isPivotOrVal = col === pivotCol || col === valueCol;
-                  return (
-                    <label
-                      key={col}
-                      className={`flex items-center gap-2 p-1.5 rounded-md transition cursor-pointer text-[11px] font-mono ${
-                        isPivotOrVal
-                          ? 'opacity-40 cursor-not-allowed bg-slate-100 dark:bg-slate-800/40 text-slate-400'
-                          : isChecked
-                          ? 'bg-purple-50 dark:bg-purple-950/40 text-purple-900 dark:text-purple-200 font-semibold'
-                          : 'hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300'
-                      }`}
-                    >
-                      <input
-                        type="checkbox"
-                        checked={isChecked}
-                        disabled={isPivotOrVal}
-                        onChange={() => toggleIndexCol(col)}
-                        className="rounded text-purple-600 focus:ring-purple-500 w-3.5 h-3.5 cursor-pointer"
-                      />
-                      <span>{col}</span>
-                      {isPivotOrVal && (
-                        <span className="text-[9px] font-sans text-amber-600 dark:text-amber-400 ml-auto">
-                          ({col === pivotCol ? 'Pivot Col' : 'Value Col'})
-                        </span>
-                      )}
-                    </label>
-                  );
-                })}
+              {/* Columns Checkbox List */}
+              <div className="space-y-1 max-h-52 overflow-y-auto border border-slate-200 dark:border-slate-700 rounded-lg p-2 bg-white dark:bg-slate-900">
+                {filteredColumns.length === 0 ? (
+                  <p className="text-[11px] text-slate-400 text-center py-2">Tidak ada kolom yang cocok.</p>
+                ) : (
+                  filteredColumns.map((col) => {
+                    const isChecked = selectedIndices.includes(col);
+                    const isPivot = col === pivotCol;
+                    const isVal = col === valueCol;
+                    const meta = columnMetadata[col];
+
+                    return (
+                      <label
+                        key={col}
+                        onClick={() => toggleIndexCol(col)}
+                        className={`flex items-start gap-2 p-1.5 rounded-md transition cursor-pointer text-[11px] ${
+                          isPivot
+                            ? 'bg-amber-50/60 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800/60 text-amber-900 dark:text-amber-300'
+                            : isVal
+                            ? 'bg-sky-50/60 dark:bg-sky-950/30 border border-sky-200 dark:border-sky-800/60 text-sky-900 dark:text-sky-300'
+                            : isChecked
+                            ? 'bg-purple-50 dark:bg-purple-950/40 text-purple-900 dark:text-purple-200 font-semibold'
+                            : 'hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300'
+                        }`}
+                      >
+                        <input
+                          type="checkbox"
+                          checked={isChecked}
+                          onChange={() => {}} // Handled by label click
+                          className="rounded text-purple-600 focus:ring-purple-500 w-3.5 h-3.5 mt-0.5 cursor-pointer"
+                        />
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center justify-between gap-1">
+                            <span className="font-mono font-bold">{col}</span>
+                            {isPivot && (
+                              <span className="px-1.5 py-0.2 rounded bg-amber-200 dark:bg-amber-900 text-amber-900 dark:text-amber-200 text-[9px] font-bold">
+                                Pivot Header
+                              </span>
+                            )}
+                            {isVal && (
+                              <span className="px-1.5 py-0.2 rounded bg-sky-200 dark:bg-sky-900 text-sky-900 dark:text-sky-200 text-[9px] font-bold">
+                                Cell Value
+                              </span>
+                            )}
+                          </div>
+                          {meta?.headerName && meta.headerName !== col && (
+                            <p className="text-[10px] text-slate-500 dark:text-slate-400 truncate">
+                              {meta.headerName}
+                            </p>
+                          )}
+                        </div>
+                      </label>
+                    );
+                  })
+                )}
               </div>
             </div>
 
-            {/* Step 2 & 3: Pivot Column, Value Column, & Aggregation */}
+            {/* Step 2 & 3 & 4: Pivot Column, Value Column, & Aggregation */}
             <div className="space-y-3.5 bg-slate-50 dark:bg-slate-800/50 p-3.5 rounded-xl border border-slate-200 dark:border-slate-800 flex flex-col justify-between">
               {/* Step 2: Pivot Header Column */}
               <div>
@@ -263,21 +384,19 @@ export const PivotModal = () => {
                 </p>
                 <select
                   value={pivotCol}
-                  onChange={(e) => {
-                    const val = e.target.value;
-                    setPivotCol(val);
-                    if (selectedIndices.includes(val)) {
-                      setSelectedIndices(selectedIndices.filter((c) => c !== val));
-                    }
-                  }}
+                  onChange={(e) => handlePivotColChange(e.target.value)}
                   className="w-full bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg px-2.5 py-1.5 text-slate-800 dark:text-slate-100 font-mono text-[11px] focus:outline-none focus:border-purple-500 cursor-pointer"
                 >
                   <option value="">-- {t('pivot.selectCol') || 'Pilih Kolom Header'} --</option>
-                  {availableColumns.map((col) => (
-                    <option key={col} value={col} disabled={col === valueCol}>
-                      {col} {col === valueCol ? '(Digunakan sbg Value)' : ''}
-                    </option>
-                  ))}
+                  {baseColumns.map((col) => {
+                    const meta = columnMetadata[col];
+                    const label = meta?.headerName && meta.headerName !== col ? `${col} - ${meta.headerName}` : col;
+                    return (
+                      <option key={col} value={col}>
+                        {label} {col === valueCol ? ' (Sedang dipilih sbg Value)' : ''}
+                      </option>
+                    );
+                  })}
                 </select>
               </div>
 
@@ -294,21 +413,19 @@ export const PivotModal = () => {
                 </p>
                 <select
                   value={valueCol}
-                  onChange={(e) => {
-                    const val = e.target.value;
-                    setValueCol(val);
-                    if (selectedIndices.includes(val)) {
-                      setSelectedIndices(selectedIndices.filter((c) => c !== val));
-                    }
-                  }}
+                  onChange={(e) => handleValueColChange(e.target.value)}
                   className="w-full bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg px-2.5 py-1.5 text-slate-800 dark:text-slate-100 font-mono text-[11px] focus:outline-none focus:border-purple-500 cursor-pointer"
                 >
                   <option value="">-- {t('pivot.selectVal') || 'Pilih Kolom Nilai'} --</option>
-                  {availableColumns.map((col) => (
-                    <option key={col} value={col} disabled={col === pivotCol}>
-                      {col} {col === pivotCol ? '(Digunakan sbg Pivot Header)' : ''}
-                    </option>
-                  ))}
+                  {baseColumns.map((col) => {
+                    const meta = columnMetadata[col];
+                    const label = meta?.headerName && meta.headerName !== col ? `${col} - ${meta.headerName}` : col;
+                    return (
+                      <option key={col} value={col}>
+                        {label} {col === pivotCol ? ' (Sedang dipilih sbg Pivot Header)' : ''}
+                      </option>
+                    );
+                  })}
                 </select>
               </div>
 
@@ -338,16 +455,16 @@ export const PivotModal = () => {
           </div>
 
           {/* Transformation Summary Preview */}
-          {selectedIndices.length > 0 && pivotCol && valueCol && (
-            <div className="p-3 rounded-xl bg-slate-100 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 flex items-center justify-between text-slate-700 dark:text-slate-300 font-mono text-[11px]">
-              <div className="flex items-center gap-2">
-                <span className="font-bold text-slate-900 dark:text-slate-100">[{selectedIndices.join(', ')}]</span>
-                <ArrowRight className="w-3.5 h-3.5 text-purple-600 dark:text-purple-400" />
+          {cleanDisplayIndices.length > 0 && pivotCol && valueCol && (
+            <div className="p-3 rounded-xl bg-purple-50/50 dark:bg-purple-950/20 border border-purple-200 dark:border-purple-800/50 flex items-center justify-between text-slate-700 dark:text-slate-300 font-mono text-[11px]">
+              <div className="flex items-center gap-2 flex-wrap">
+                <span className="font-bold text-slate-900 dark:text-slate-100">[{cleanDisplayIndices.join(', ')}]</span>
+                <ArrowRight className="w-3.5 h-3.5 text-purple-600 dark:text-purple-400 shrink-0" />
                 <span className="text-purple-700 dark:text-purple-300 font-bold">
                   {pivotCol} ➔ {valueCol} ({aggFunc})
                 </span>
               </div>
-              <span className="text-slate-500 dark:text-slate-400 text-[10px] font-sans">
+              <span className="text-slate-500 dark:text-slate-400 text-[10px] font-sans shrink-0">
                 {isPivoted ? `Raw: ${rawTotalRows} baris` : `Total Data: ${totalRows} baris`}
               </span>
             </div>
@@ -388,4 +505,3 @@ export const PivotModal = () => {
     </div>
   );
 };
-
