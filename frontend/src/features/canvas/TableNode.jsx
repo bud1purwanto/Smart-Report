@@ -3,8 +3,10 @@ import { Handle, Position } from '@xyflow/react';
 import { Key, Trash2, Search, CheckSquare, Square, Filter, Link2 } from 'lucide-react';
 import { useCanvasStore } from '../../store/useCanvasStore';
 import { useAppStore } from '../../store/useAppStore';
+import { useTranslation } from '../../locales/useTranslation';
 
 export const TableNode = memo(({ id, data }) => {
+  const { t } = useTranslation();
   const { table, fields = [] } = data;
   const [filterText, setFilterText] = useState('');
   const {
@@ -53,14 +55,14 @@ export const TableNode = memo(({ id, data }) => {
           <div>
             <div className="font-extrabold text-xs text-slate-800 dark:text-slate-100 font-mono tracking-wide">{table}</div>
             <div className="text-[10px] text-slate-400 dark:text-slate-500 font-medium">
-              {selectedCount} / {fields.length} kolom dipilih
+              {selectedCount} / {fields.length} {t('canvas.selectedColumns')}
             </div>
           </div>
         </div>
         <button
           onClick={() => removeNode(id)}
           className="text-slate-400 hover:text-red-500 p-1 rounded-md hover:bg-red-50 dark:hover:bg-red-950/40 transition cursor-pointer"
-          title="Hapus Tabel"
+          title={t('canvas.removeTable')}
         >
           <Trash2 className="w-3.5 h-3.5" />
         </button>
@@ -74,7 +76,7 @@ export const TableNode = memo(({ id, data }) => {
             type="text"
             value={filterText}
             onChange={(e) => setFilterText(e.target.value)}
-            placeholder="Cari kolom atau deskripsi..."
+            placeholder={t('canvas.searchPlaceholder')}
             className="w-full bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg px-2 pl-7 py-1 text-[11px] text-slate-700 dark:text-slate-200 focus:outline-none focus:border-sky-500 transition shadow-2xs"
           />
         </div>
@@ -109,11 +111,11 @@ export const TableNode = memo(({ id, data }) => {
                 );
                 if (ok) {
                   showNotification(
-                    `Relasi join dibuat: ${pendingConnection.table}.${pendingConnection.field} ↔ ${table}.${field.fieldname}`,
+                    `Relasi join: ${pendingConnection.table}.${pendingConnection.field} ↔ ${table}.${field.fieldname}`,
                     'success'
                   );
                 } else {
-                  showNotification('Relasi join tersebut sudah ada.', 'warning');
+                  showNotification('Join relation already exists.', 'warning');
                 }
               } else {
                 setPendingConnection(null);
@@ -130,7 +132,7 @@ export const TableNode = memo(({ id, data }) => {
             } else {
               setPendingConnection({ tableId: id, table, field: field.fieldname });
               showNotification(
-                `Pilih kolom pada tabel tujuan untuk menghubungkan join dengan ${table}.${field.fieldname}`,
+                `${t('canvas.pendingRelBanner')} ${table}.${field.fieldname}`,
                 'info'
               );
             }
@@ -156,14 +158,14 @@ export const TableNode = memo(({ id, data }) => {
                 id={field.fieldname}
                 className="!w-2.5 !h-2.5 !rounded-full !bg-sky-500 hover:!bg-amber-400 hover:!scale-150 !border-2 !border-white dark:!border-slate-900 transition-all cursor-crosshair shadow-sm z-20 opacity-0 group-hover:opacity-100"
                 style={{ left: '-1px', top: '50%', transform: 'translateY(-50%)' }}
-                title={`Tarik relasi join ke ${field.fieldname}`}
+                title={`${t('canvas.dragRelationTo')} ${field.fieldname}`}
                 onClick={handleLinkClick}
               />
 
               <div
                 className="flex items-center gap-2 cursor-pointer select-none overflow-hidden flex-1 min-w-0 mr-2"
                 onClick={handleRowClick}
-                title={isPendingTarget ? `Klik untuk menghubungkan relasi ke ${table}.${field.fieldname}` : fullLabel}
+                title={isPendingTarget ? `${t('canvas.connectRelationTo')} ${table}.${field.fieldname}` : fullLabel}
               >
                 {isSelected ? (
                   <CheckSquare className="w-3.5 h-3.5 text-sky-600 dark:text-sky-400 shrink-0" />
@@ -193,7 +195,7 @@ export const TableNode = memo(({ id, data }) => {
                       ? 'text-amber-600 bg-amber-200 dark:bg-amber-800 animate-pulse'
                       : 'text-slate-300 dark:text-slate-600 hover:text-sky-500 opacity-0 group-hover:opacity-100'
                   }`}
-                  title={isPendingSource ? 'Klik untuk batalkan' : `Hubungkan relasi Join dari ${table}.${field.fieldname}`}
+                  title={isPendingSource ? t('canvas.cancelRelation') : `${t('canvas.connectRelationFrom')} ${table}.${field.fieldname}`}
                 >
                   <Link2 className="w-3 h-3" />
                 </button>
@@ -209,7 +211,7 @@ export const TableNode = memo(({ id, data }) => {
                       ? 'text-amber-600 dark:text-amber-400 bg-amber-100/90 dark:bg-amber-950/80 shadow-2xs'
                       : 'text-slate-300 dark:text-slate-600 hover:text-amber-500 opacity-0 group-hover:opacity-100'
                   }`}
-                  title={hasFilter ? `Parameter filter aktif: ${table}.${field.fieldname}` : `Set parameter seleksi untuk ${field.fieldname}`}
+                  title={hasFilter ? `${t('canvas.activeFilterParam')} ${table}.${field.fieldname}` : `${t('canvas.setParameterFor')} ${field.fieldname}`}
                 >
                   <Filter className="w-3 h-3" />
                 </button>
@@ -226,14 +228,14 @@ export const TableNode = memo(({ id, data }) => {
                 id={field.fieldname}
                 className="!w-2.5 !h-2.5 !rounded-full !bg-sky-500 hover:!bg-amber-400 hover:!scale-150 !border-2 !border-white dark:!border-slate-900 transition-all cursor-crosshair shadow-sm z-20 opacity-0 group-hover:opacity-100"
                 style={{ right: '-1px', top: '50%', transform: 'translateY(-50%)' }}
-                title={`Tarik relasi join dari ${field.fieldname}`}
+                title={`${t('canvas.dragRelationFrom')} ${field.fieldname}`}
                 onClick={handleLinkClick}
               />
             </div>
           );
         })}
         {filteredFields.length === 0 && (
-          <div className="p-3 text-center text-slate-400 dark:text-slate-500 text-[11px]">Kolom tidak ditemukan</div>
+          <div className="p-3 text-center text-slate-400 dark:text-slate-500 text-[11px]">{t('canvas.noFieldsFound')}</div>
         )}
       </div>
 
@@ -243,7 +245,7 @@ export const TableNode = memo(({ id, data }) => {
           onClick={handleSelectAll}
           className="text-sky-600 dark:text-sky-400 hover:text-sky-700 dark:hover:text-sky-300 font-semibold cursor-pointer"
         >
-          {selectedCount === fields.length ? 'Batal Semua' : 'Pilih Semua'}
+          {selectedCount === fields.length ? t('canvas.deselectAll') : t('canvas.selectAll')}
         </button>
         <span className="font-mono text-slate-400 dark:text-slate-500">Total {fields.length}</span>
       </div>

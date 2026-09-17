@@ -3,8 +3,10 @@ import { Handle, Position } from '@xyflow/react';
 import { Key, Trash2, Search, CheckSquare, Square, Filter } from 'lucide-react';
 import { useCompareStore } from '../../store/useCompareStore';
 import { useAppStore } from '../../store/useAppStore';
+import { useTranslation } from '../../locales/useTranslation';
 
 export const CompareTableNode = memo(({ id, data }) => {
+  const { t } = useTranslation();
   const { table, fields = [] } = data;
   const [filterText, setFilterText] = useState('');
   const { removeNode, selectedFields, toggleFieldSelection, filters } = useCompareStore();
@@ -45,14 +47,14 @@ export const CompareTableNode = memo(({ id, data }) => {
           <div>
             <div className="font-extrabold text-xs text-slate-800 dark:text-slate-100 font-mono tracking-wide">{table}</div>
             <div className="text-[10px] text-slate-400 dark:text-slate-500 font-medium">
-              {selectedCount} / {fields.length} kolom dipilih
+              {selectedCount} / {fields.length} {t('canvas.selectedColumns')}
             </div>
           </div>
         </div>
         <button
           onClick={() => removeNode(id)}
           className="text-slate-400 hover:text-red-500 p-1 rounded-md hover:bg-red-50 dark:hover:bg-red-950/40 transition cursor-pointer"
-          title="Hapus Tabel Komparasi"
+          title={t('canvas.removeTable')}
         >
           <Trash2 className="w-3.5 h-3.5" />
         </button>
@@ -66,7 +68,7 @@ export const CompareTableNode = memo(({ id, data }) => {
             type="text"
             value={filterText}
             onChange={(e) => setFilterText(e.target.value)}
-            placeholder="Cari kolom atau deskripsi..."
+            placeholder={t('canvas.searchPlaceholder')}
             className="w-full bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg px-2 pl-7 py-1 text-[11px] text-slate-700 dark:text-slate-200 focus:outline-none focus:border-purple-500 transition shadow-2xs"
           />
         </div>
@@ -99,7 +101,7 @@ export const CompareTableNode = memo(({ id, data }) => {
                 id={field.fieldname}
                 className="!w-2.5 !h-2.5 !rounded-full !bg-purple-500 hover:!bg-amber-400 hover:!scale-150 !border-2 !border-white dark:!border-slate-900 transition-all cursor-crosshair shadow-sm z-20 opacity-0 group-hover:opacity-100"
                 style={{ left: '-1px', top: '50%', transform: 'translateY(-50%)' }}
-                title={`Tarik relasi join ke kolom ${field.fieldname}`}
+                title={`${t('canvas.dragRelationTo')} ${field.fieldname}`}
               />
 
               <div
@@ -138,7 +140,7 @@ export const CompareTableNode = memo(({ id, data }) => {
                       ? 'text-amber-600 dark:text-amber-400 bg-amber-100/90 dark:bg-amber-950/80 shadow-2xs'
                       : 'text-slate-300 dark:text-slate-600 hover:text-amber-500 opacity-0 group-hover:opacity-100'
                   }`}
-                  title={hasFilter ? `Parameter aktif: ${table}.${field.fieldname}` : `Set parameter komparasi untuk ${field.fieldname}`}
+                  title={hasFilter ? `${t('canvas.activeFilterParam')} ${table}.${field.fieldname}` : `${t('canvas.setParameterFor')} ${field.fieldname}`}
                 >
                   <Filter className="w-3 h-3" />
                 </button>
@@ -155,13 +157,13 @@ export const CompareTableNode = memo(({ id, data }) => {
                 id={field.fieldname}
                 className="!w-2.5 !h-2.5 !rounded-full !bg-purple-500 hover:!bg-amber-400 hover:!scale-150 !border-2 !border-white dark:!border-slate-900 transition-all cursor-crosshair shadow-sm z-20 opacity-0 group-hover:opacity-100"
                 style={{ right: '-1px', top: '50%', transform: 'translateY(-50%)' }}
-                title={`Tarik relasi join dari kolom ${field.fieldname}`}
+                title={`${t('canvas.dragRelationFrom')} ${field.fieldname}`}
               />
             </div>
           );
         })}
         {filteredFields.length === 0 && (
-          <div className="p-3 text-center text-slate-400 dark:text-slate-500 text-[11px]">Kolom tidak ditemukan</div>
+          <div className="p-3 text-center text-slate-400 dark:text-slate-500 text-[11px]">{t('canvas.noFieldsFound')}</div>
         )}
       </div>
 
@@ -171,7 +173,7 @@ export const CompareTableNode = memo(({ id, data }) => {
           onClick={handleSelectAll}
           className="text-purple-600 dark:text-purple-400 hover:text-purple-700 dark:hover:text-purple-300 font-semibold cursor-pointer"
         >
-          {selectedCount === fields.length ? 'Batal Semua' : 'Pilih Semua'}
+          {selectedCount === fields.length ? t('canvas.deselectAll') : t('canvas.selectAll')}
         </button>
         <span className="font-mono text-slate-400 dark:text-slate-500">Total {fields.length}</span>
       </div>

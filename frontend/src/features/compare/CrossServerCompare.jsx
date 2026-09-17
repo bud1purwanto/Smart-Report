@@ -1,9 +1,11 @@
 import React from 'react';
 import { ArrowLeftRight, Eye, X } from 'lucide-react';
 import { useCompareStore } from '../../store/useCompareStore';
+import { useTranslation } from '../../locales/useTranslation';
 import { CompareCanvas } from './CompareCanvas';
 
 export const CrossServerCompare = () => {
+  const { t } = useTranslation();
   const {
     filterStatus,
     setFilterStatus,
@@ -44,7 +46,7 @@ export const CrossServerCompare = () => {
               className="flex items-center gap-2 px-4 py-2 rounded-xl bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white text-xs font-bold shadow-xl shadow-purple-900/20 border border-purple-400/30 transition transform hover:-translate-y-0.5 cursor-pointer backdrop-blur-md animate-in fade-in zoom-in-95 duration-200"
             >
               <ArrowLeftRight className="w-4 h-4" />
-              <span>Buka Hasil Komparasi Diff ({filteredRows.length} baris)</span>
+              <span>{t('compare.openDiffButton', { count: filteredRows.length })}</span>
             </button>
           </div>
         )}
@@ -59,12 +61,12 @@ export const CrossServerCompare = () => {
           {summary && (
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-3 p-3 border-b border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 shrink-0">
               <div className="rounded-xl border border-sky-200 dark:border-sky-800/60 bg-sky-50/50 dark:bg-sky-950/20 p-2.5 shadow-2xs">
-                <span className="text-[10px] font-bold text-sky-600 dark:text-sky-400 uppercase tracking-wider block">Total Server A</span>
+                <span className="text-[10px] font-bold text-sky-600 dark:text-sky-400 uppercase tracking-wider block">{t('compare.summaryServerA')}</span>
                 <span className="text-base font-mono font-black text-sky-800 dark:text-sky-200">{summary.total_a.toLocaleString()}</span>
                 <span className="text-[10px] text-slate-500 dark:text-slate-400 block truncate">{summary.server_a_name}</span>
               </div>
               <div className="rounded-xl border border-purple-200 dark:border-purple-800/60 bg-purple-50/50 dark:bg-purple-950/20 p-2.5 shadow-2xs">
-                <span className="text-[10px] font-bold text-purple-600 dark:text-purple-400 uppercase tracking-wider block">Total Server B</span>
+                <span className="text-[10px] font-bold text-purple-600 dark:text-purple-400 uppercase tracking-wider block">{t('compare.summaryServerB')}</span>
                 <span className="text-base font-mono font-black text-purple-800 dark:text-purple-200">{summary.total_b.toLocaleString()}</span>
                 <span className="text-[10px] text-slate-500 dark:text-slate-400 block truncate">{summary.server_b_name}</span>
               </div>
@@ -76,9 +78,9 @@ export const CrossServerCompare = () => {
                     : 'border-emerald-200 dark:border-emerald-800/60 bg-emerald-50/50 dark:bg-emerald-950/20 hover:bg-emerald-100/60 dark:hover:bg-emerald-900/30'
                 }`}
               >
-                <span className="text-[10px] font-bold text-emerald-700 dark:text-emerald-400 uppercase tracking-wider block">Identik</span>
+                <span className="text-[10px] font-bold text-emerald-700 dark:text-emerald-400 uppercase tracking-wider block">{t('compare.identical')}</span>
                 <span className="text-base font-mono font-black text-emerald-800 dark:text-emerald-200">{summary.identical_count.toLocaleString()}</span>
-                <span className="text-[10px] text-slate-500 dark:text-slate-400 block">Tidak ada selisih</span>
+                <span className="text-[10px] text-slate-500 dark:text-slate-400 block">{t('compare.identicalDesc')}</span>
               </div>
               <div
                 onClick={() => setFilterStatus('MODIFIED')}
@@ -88,9 +90,9 @@ export const CrossServerCompare = () => {
                     : 'border-amber-200 dark:border-amber-800/60 bg-amber-50/50 dark:bg-amber-950/20 hover:bg-amber-100/60 dark:hover:bg-amber-900/30'
                 }`}
               >
-                <span className="text-[10px] font-bold text-amber-700 dark:text-amber-400 uppercase tracking-wider block">Dimodifikasi</span>
+                <span className="text-[10px] font-bold text-amber-700 dark:text-amber-400 uppercase tracking-wider block">{t('compare.modified')}</span>
                 <span className="text-base font-mono font-black text-amber-800 dark:text-amber-200">{summary.modified_count.toLocaleString()}</span>
-                <span className="text-[10px] text-slate-500 dark:text-slate-400 block">Nilai berbeda</span>
+                <span className="text-[10px] text-slate-500 dark:text-slate-400 block">{t('compare.modifiedDesc')}</span>
               </div>
               <div
                 onClick={() => setFilterStatus('ADDED_IN_B')}
@@ -100,9 +102,9 @@ export const CrossServerCompare = () => {
                     : 'border-sky-200 dark:border-sky-800/60 bg-sky-50/50 dark:bg-sky-950/20 hover:bg-sky-100/60 dark:hover:bg-sky-900/30'
                 }`}
               >
-                <span className="text-[10px] font-bold text-sky-700 dark:text-sky-400 uppercase tracking-wider block">Baru di B</span>
+                <span className="text-[10px] font-bold text-sky-700 dark:text-sky-400 uppercase tracking-wider block">{t('compare.addedInB')}</span>
                 <span className="text-base font-mono font-black text-sky-800 dark:text-sky-200">{summary.added_count.toLocaleString()}</span>
-                <span className="text-[10px] text-slate-500 dark:text-slate-400 block">Hanya di Server B</span>
+                <span className="text-[10px] text-slate-500 dark:text-slate-400 block">{t('compare.addedInBDesc')}</span>
               </div>
               <div
                 onClick={() => setFilterStatus('DELETED_IN_B')}
@@ -112,9 +114,9 @@ export const CrossServerCompare = () => {
                     : 'border-rose-200 dark:border-rose-800/60 bg-rose-50/50 dark:bg-rose-950/20 hover:bg-rose-100/60 dark:hover:bg-rose-900/30'
                 }`}
               >
-                <span className="text-[10px] font-bold text-rose-700 dark:text-rose-400 uppercase tracking-wider block">Hilang di B</span>
+                <span className="text-[10px] font-bold text-rose-700 dark:text-rose-400 uppercase tracking-wider block">{t('compare.deletedInB')}</span>
                 <span className="text-base font-mono font-black text-rose-800 dark:text-rose-200">{summary.deleted_count.toLocaleString()}</span>
-                <span className="text-[10px] text-slate-500 dark:text-slate-400 block">Hanya di Server A</span>
+                <span className="text-[10px] text-slate-500 dark:text-slate-400 block">{t('compare.deletedInBDesc')}</span>
               </div>
             </div>
           )}
@@ -123,22 +125,28 @@ export const CrossServerCompare = () => {
           {compareResult && (
             <div className="px-4 py-2 border-b border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900/80 flex items-center justify-between text-xs shrink-0">
               <div className="flex items-center gap-1.5">
-                {['ALL', 'MODIFIED', 'ADDED_IN_B', 'DELETED_IN_B', 'IDENTICAL'].map((status) => (
+                {[
+                  { key: 'ALL', label: t('compare.allTab') },
+                  { key: 'MODIFIED', label: t('compare.modifiedTab') },
+                  { key: 'ADDED_IN_B', label: t('compare.addedTab') },
+                  { key: 'DELETED_IN_B', label: t('compare.deletedTab') },
+                  { key: 'IDENTICAL', label: t('compare.identicalTab') },
+                ].map(({ key, label }) => (
                   <button
-                    key={status}
-                    onClick={() => setFilterStatus(status)}
+                    key={key}
+                    onClick={() => setFilterStatus(key)}
                     className={`px-3 py-1 rounded-lg font-semibold text-[11px] transition shadow-2xs cursor-pointer ${
-                      filterStatus === status
+                      filterStatus === key
                         ? 'bg-white dark:bg-slate-800 text-purple-700 dark:text-purple-300 border border-purple-300 dark:border-purple-600 shadow-xs'
                         : 'text-slate-600 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800'
                     }`}
                   >
-                    {status}
+                    {label}
                   </button>
                 ))}
               </div>
               <div className="text-[11px] text-slate-500 dark:text-slate-400 font-mono">
-                Waktu Paralel: <b>{compareResult.execution_time_ms} ms</b> · Menampilkan {filteredRows.length} baris
+                {t('compare.parallelTime')} <b>{compareResult.execution_time_ms} ms</b> · {t('compare.showingRows', { count: filteredRows.length })}
               </div>
             </div>
           )}
@@ -150,10 +158,10 @@ export const CrossServerCompare = () => {
                 <table className="w-full text-left text-xs border-collapse font-sans">
                   <thead className="bg-slate-50 dark:bg-slate-800/90 text-slate-600 dark:text-slate-400 font-mono text-[11px] border-b border-slate-200 dark:border-slate-800">
                     <tr>
-                      <th className="p-2.5 w-28">STATUS</th>
-                      <th className="p-2.5 w-48">COMPOSITE KEY</th>
-                      <th className="p-2.5">DETAIL PERUBAHAN / NILAI</th>
-                      <th className="p-2.5 w-20 text-center">AKSI</th>
+                      <th className="p-2.5 w-28">{t('compare.colStatus')}</th>
+                      <th className="p-2.5 w-48">{t('compare.colKey')}</th>
+                      <th className="p-2.5">{t('compare.colDetail')}</th>
+                      <th className="p-2.5 w-20 text-center">{t('compare.colAction')}</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-slate-100 dark:divide-slate-800/60">
@@ -187,18 +195,18 @@ export const CrossServerCompare = () => {
                                 ))}
                               </div>
                             ) : r.diff_status === 'ADDED_IN_B' ? (
-                              <span className="text-sky-700 dark:text-sky-400 font-medium">Data baru ditambahkan di Server B</span>
+                              <span className="text-sky-700 dark:text-sky-400 font-medium">{t('compare.addedDetail')}</span>
                             ) : r.diff_status === 'DELETED_IN_B' ? (
-                              <span className="text-rose-700 dark:text-rose-400 font-medium">Data terhapus / tidak ditemukan di Server B</span>
+                              <span className="text-rose-700 dark:text-rose-400 font-medium">{t('compare.deletedDetail')}</span>
                             ) : (
-                              <span className="text-slate-400 dark:text-slate-500">Semua nilai kolom cocok persis</span>
+                              <span className="text-slate-400 dark:text-slate-500">{t('compare.identicalValueMatch')}</span>
                             )}
                           </td>
                           <td className="p-2.5 text-center">
                             <button
                               onClick={() => setInspectRow(r)}
                               className="p-1 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-500 dark:text-slate-400 hover:text-purple-600 dark:hover:text-purple-400 transition cursor-pointer"
-                              title="Inspeksi Baris"
+                              title={t('compare.inspectRow')}
                             >
                               <Eye className="w-3.5 h-3.5" />
                             </button>
@@ -220,7 +228,7 @@ export const CrossServerCompare = () => {
           <div className="w-full max-w-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 space-y-4 shadow-xl max-h-[85vh] overflow-y-auto animate-in fade-in zoom-in-95 duration-150 text-slate-800 dark:text-slate-100">
             <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3">
               <h3 className="font-bold text-sm text-slate-800 dark:text-slate-100 font-mono">
-                Inspeksi Perbedaan Baris: {inspectRow.key_value}
+                {t('compare.inspectTitle', { key: inspectRow.key_value })}
               </h3>
               <button
                 onClick={() => setInspectRow(null)}
@@ -252,9 +260,9 @@ export const CrossServerCompare = () => {
             <div className="flex justify-end pt-2">
               <button
                 onClick={() => setInspectRow(null)}
-                className="px-4 py-1.5 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 text-xs font-semibold transition"
+                className="px-4 py-1.5 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 text-xs font-semibold transition cursor-pointer"
               >
-                Tutup
+                {t('common.close')}
               </button>
             </div>
           </div>

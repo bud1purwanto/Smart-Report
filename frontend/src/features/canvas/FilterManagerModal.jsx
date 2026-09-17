@@ -3,8 +3,10 @@ import { X, Filter, Plus, Trash2, Check, SlidersHorizontal, Info } from 'lucide-
 import { useAppStore } from '../../store/useAppStore';
 import { useCanvasStore } from '../../store/useCanvasStore';
 import { useCompareStore } from '../../store/useCompareStore';
+import { useTranslation } from '../../locales/useTranslation';
 
 export const FilterManagerModal = () => {
+  const { t } = useTranslation();
   const { filterModalOpen, setFilterModalOpen, filterTarget, showNotification, activeTab } = useAppStore();
   const isCompare = activeTab === 'compare';
   const canvasStore = useCanvasStore();
@@ -36,11 +38,11 @@ export const FilterManagerModal = () => {
     const tbl = currentTable;
     const fld = selectedField || fields[0]?.fieldname || '';
     if (!tbl || !fld) {
-      showNotification('Pilih tabel dan kolom terlebih dahulu.', 'warning');
+      showNotification(t('filter.selectTableFirst'), 'warning');
       return;
     }
     if (!value.trim()) {
-      showNotification('Nilai parameter / filter wajib diisi.', 'warning');
+      showNotification(t('filter.paramValueRequired'), 'warning');
       return;
     }
 
@@ -54,21 +56,21 @@ export const FilterManagerModal = () => {
     };
 
     addFilter(newFilter);
-    showNotification(`Parameter ${tbl}.${fld} ${operator} '${value}' ditambahkan.`, 'success');
+    showNotification(t('filter.paramAdded', { field: `${tbl}.${fld}`, op: operator, val: value }), 'success');
     setValue('');
     setValueTo('');
   };
 
   const operatorLabels = {
-    EQ: '= (Sama dengan)',
-    NE: '<> (Tidak sama dengan)',
-    GT: '> (Lebih besar dari)',
-    LT: '< (Lebih kecil dari)',
-    GE: '>= (Lebih besar atau sama)',
-    LE: '<= (Lebih kecil atau sama)',
-    LIKE: 'LIKE (Cocok pola / wildcard)',
-    IN: 'IN (Kumpulan nilai koma)',
-    BETWEEN: 'BETWEEN (Rentang Dari .. Sampai)',
+    EQ: t('filter.eq'),
+    NE: t('filter.ne'),
+    GT: t('filter.gt'),
+    LT: t('filter.lt'),
+    GE: t('filter.ge'),
+    LE: t('filter.le'),
+    LIKE: t('filter.like'),
+    IN: t('filter.in'),
+    BETWEEN: t('filter.between'),
   };
 
   return (
@@ -82,14 +84,10 @@ export const FilterManagerModal = () => {
             </span>
             <div>
               <h3 className="font-extrabold text-sm text-slate-800 dark:text-slate-100">
-                {isCompare
-                  ? 'Kriteria Parameter Seleksi (Cross-Server Diff)'
-                  : 'Kriteria Seleksi & Parameter Query (SQVI Selection Screen)'}
+                {isCompare ? t('filter.titleCompare') : t('filter.titleStudio')}
               </h3>
               <p className="text-[11px] text-slate-400 dark:text-slate-400">
-                {isCompare
-                  ? 'Kondisi WHERE ini diterapkan secara paralel ke Server A dan Server B sebelum komparasi diff'
-                  : 'Tentukan kondisi pembatas data (WHERE clause) sebelum query ditarik ke ALV Grid'}
+                {isCompare ? t('filter.subtitleCompare') : t('filter.subtitleStudio')}
               </p>
             </div>
           </div>
@@ -107,12 +105,12 @@ export const FilterManagerModal = () => {
           <div className="bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 rounded-xl p-3.5 space-y-3">
             <div className="font-bold text-slate-700 dark:text-slate-300 flex items-center gap-1.5">
               <Plus className="w-3.5 h-3.5 text-amber-600 dark:text-amber-400" />
-              <span>Tambah Parameter Seleksi Baru</span>
+              <span>{t('filter.addParamHeader')}</span>
             </div>
 
             {availableTables.length === 0 ? (
               <div className="text-slate-400 text-[11px]">
-                Tambahkan tabel di kanvas terlebih dahulu untuk memilih field kriteria seleksi.
+                {t('filter.addTableFirst')}
               </div>
             ) : (
               <div className="space-y-2.5">
@@ -120,7 +118,7 @@ export const FilterManagerModal = () => {
                   {/* Table Selector */}
                   <div>
                     <label className="block text-[11px] font-semibold text-slate-600 dark:text-slate-400 mb-1">
-                      Tabel SAP:
+                      {t('filter.sapTable')}
                     </label>
                     <select
                       value={currentTable}
@@ -141,7 +139,7 @@ export const FilterManagerModal = () => {
                   {/* Field Selector */}
                   <div>
                     <label className="block text-[11px] font-semibold text-slate-600 dark:text-slate-400 mb-1">
-                      Kolom / Field:
+                      {t('filter.columnField')}
                     </label>
                     <select
                       value={selectedField || fields[0]?.fieldname || ''}
@@ -159,7 +157,7 @@ export const FilterManagerModal = () => {
                   {/* Operator */}
                   <div>
                     <label className="block text-[11px] font-semibold text-slate-600 dark:text-slate-400 mb-1">
-                      Operator Logika:
+                      {t('filter.operator')}
                     </label>
                     <select
                       value={operator}
@@ -179,7 +177,7 @@ export const FilterManagerModal = () => {
                 <div className="flex gap-2 items-center flex-wrap">
                   <div className="flex-1 min-w-[180px]">
                     <label className="block text-[11px] font-semibold text-slate-600 dark:text-slate-400 mb-1">
-                      {operator === 'BETWEEN' ? 'Nilai Dari (From):' : 'Nilai Parameter:'}
+                      {operator === 'BETWEEN' ? t('filter.valueFrom') : t('filter.paramValue')}
                     </label>
                     <input
                       type="text"
@@ -187,10 +185,10 @@ export const FilterManagerModal = () => {
                       onChange={(e) => setValue(e.target.value)}
                       placeholder={
                         operator === 'LIKE'
-                          ? 'Contoh: 450% atau NB*'
+                          ? t('filter.placeholderLike')
                           : operator === 'IN'
-                          ? 'Contoh: 1000, 2000, 3000'
-                          : 'Contoh: 9701, F, NB, 20240101...'
+                          ? t('filter.placeholderIn')
+                          : t('filter.placeholderSingle')
                       }
                       onKeyDown={(e) => e.key === 'Enter' && handleAdd()}
                       className="w-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg px-3 py-1.5 text-xs text-slate-800 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 font-mono focus:outline-none focus:border-amber-500"
@@ -200,7 +198,7 @@ export const FilterManagerModal = () => {
                   {operator === 'BETWEEN' && (
                     <div className="flex-1 min-w-[180px]">
                       <label className="block text-[11px] font-semibold text-slate-600 dark:text-slate-400 mb-1">
-                        Sampai (To):
+                        {t('filter.valueTo')}
                       </label>
                       <input
                         type="text"
@@ -218,7 +216,7 @@ export const FilterManagerModal = () => {
                       className="px-4 py-1.5 rounded-lg bg-amber-500 hover:bg-amber-600 text-white font-bold text-xs flex items-center gap-1.5 shadow-xs transition cursor-pointer"
                     >
                       <Plus className="w-3.5 h-3.5" />
-                      <span>Terapkan</span>
+                      <span>{t('filter.applyParam')}</span>
                     </button>
                   </div>
                 </div>
@@ -231,14 +229,14 @@ export const FilterManagerModal = () => {
             <div className="flex items-center justify-between">
               <span className="font-bold text-slate-700 dark:text-slate-300 flex items-center gap-1.5">
                 <Filter className="w-3.5 h-3.5 text-sky-600 dark:text-sky-400" />
-                <span>Parameter Aktif ({filters.length})</span>
+                <span>{t('filter.activeParams', { count: filters.length })}</span>
               </span>
               {filters.length > 0 && (
                 <button
                   onClick={clearFilters}
-                  className="text-[11px] text-rose-600 dark:text-rose-400 hover:underline"
+                  className="text-[11px] text-rose-600 dark:text-rose-400 hover:underline cursor-pointer"
                 >
-                  Hapus Semua
+                  {t('filter.clearAll')}
                 </button>
               )}
             </div>
@@ -268,8 +266,8 @@ export const FilterManagerModal = () => {
 
                   <button
                     onClick={() => removeFilter(idx)}
-                    className="p-1 rounded-lg text-slate-400 hover:text-rose-600 dark:hover:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/40 transition"
-                    title="Hapus Parameter"
+                    className="p-1 rounded-lg text-slate-400 hover:text-rose-600 dark:hover:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/40 transition cursor-pointer"
+                    title={t('filter.deleteParam')}
                   >
                     <Trash2 className="w-3.5 h-3.5" />
                   </button>
@@ -278,7 +276,7 @@ export const FilterManagerModal = () => {
 
               {filters.length === 0 && (
                 <div className="p-6 text-center text-slate-400 dark:text-slate-500 text-xs">
-                  Belum ada parameter kriteria seleksi. Tambahkan parameter di atas untuk membatasi data query.
+                  {t('filter.noParams')}
                 </div>
               )}
             </div>
@@ -289,14 +287,14 @@ export const FilterManagerModal = () => {
             <Info className="w-4 h-4 text-sky-600 dark:text-sky-400 shrink-0 mt-0.5" />
             <div className="text-[11px] text-slate-600 dark:text-slate-300 space-y-1">
               <p className="font-bold text-sky-900 dark:text-sky-200">
-                Cara Kerja Parameter & Output ALV (ala SAP SQVI):
+                {t('filter.sqviTipTitle')}
               </p>
               <ul className="list-disc pl-4 space-y-0.5">
                 <li>
-                  <b>Parameter / Kriteria Seleksi:</b> Menyaring data pada level query database SAP menggunakan klausa WHERE Open SQL (misal: hanya PO dengan tipe <code>BSTYP = 'F'</code> atau Company Code <code>BUKRS = '1000'</code>).
+                  <b>{t('filter.sqviTip1Bold')}</b> {t('filter.sqviTip1Desc')}
                 </li>
                 <li>
-                  <b>Output ALV Grid:</b> Kolom-kolom yang dicentang pada setiap kartu tabel di kanvas visual akan menjadi kolom output data ALV Grid setelah tombol <b>Jalankan Query (F8)</b> diklik.
+                  <b>{t('filter.sqviTip2Bold')}</b> {t('filter.sqviTip2Desc')}
                 </li>
               </ul>
             </div>
@@ -309,7 +307,7 @@ export const FilterManagerModal = () => {
             onClick={() => setFilterModalOpen(false)}
             className="px-4 py-1.5 rounded-xl bg-sky-600 hover:bg-sky-500 text-white text-xs font-bold shadow-xs transition cursor-pointer"
           >
-            Selesai
+            {t('common.done')}
           </button>
         </div>
       </div>

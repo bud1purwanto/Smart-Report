@@ -6,9 +6,11 @@ import {
 import { useGridStore } from '../../store/useGridStore';
 import { useAppStore } from '../../store/useAppStore';
 import { useCanvasStore } from '../../store/useCanvasStore';
+import { useTranslation } from '../../locales/useTranslation';
 import { exportQuery } from '../../services/api';
 
 export const ExportToolbar = () => {
+  const { t } = useTranslation();
   const {
     anonymize,
     setAnonymize,
@@ -30,7 +32,7 @@ export const ExportToolbar = () => {
   const handleExportExcel = async () => {
     const queryDef = getQueryDefinition();
     if (!queryDef.tables || queryDef.tables.length === 0) {
-      showNotification('Tidak ada query untuk diekspor.', 'warning');
+      showNotification(t('grid.noQueryToExport'), 'warning');
       return;
     }
 
@@ -57,9 +59,9 @@ export const ExportToolbar = () => {
       link.remove();
       window.URL.revokeObjectURL(url);
 
-      showNotification('Export Excel berhasil diunduh.', 'success');
+      showNotification(t('grid.exportSuccess'), 'success');
     } catch (err) {
-      showNotification('Gagal export Excel: ' + err.message, 'error');
+      showNotification(`${t('grid.exportFailed')}: ${err.message}`, 'error');
     } finally {
       setIsExporting(false);
     }
@@ -76,7 +78,7 @@ export const ExportToolbar = () => {
 
         {/* Total rows & latency */}
         <div className="flex items-center gap-3 text-slate-500 dark:text-slate-400 font-mono text-[11px]">
-          <span>{totalRows.toLocaleString()} baris</span>
+          <span>{t('grid.totalRowsCount', { count: totalRows.toLocaleString() })}</span>
           {executionTimeMs > 0 && (
             <span className="flex items-center gap-1 text-slate-400 dark:text-slate-500">
               <Clock className="w-3 h-3" />
@@ -90,58 +92,58 @@ export const ExportToolbar = () => {
         {/* Custom Column Formula Button */}
         <button
           onClick={() => setFormulaModalOpen(true)}
-          className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-indigo-50 dark:bg-indigo-950/50 hover:bg-indigo-100/80 dark:hover:bg-indigo-900/50 border border-indigo-200 dark:border-indigo-800 text-indigo-700 dark:text-indigo-300 font-semibold text-[11px] transition shadow-2xs"
-          title="Tambah Kolom Kalkulasi Dinamis"
+          className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-indigo-50 dark:bg-indigo-950/50 hover:bg-indigo-100/80 dark:hover:bg-indigo-900/50 border border-indigo-200 dark:border-indigo-800 text-indigo-700 dark:text-indigo-300 font-semibold text-[11px] transition shadow-2xs cursor-pointer"
+          title={t('grid.customColTooltip')}
         >
           <Calculator className="w-3.5 h-3.5 text-indigo-600 dark:text-indigo-400" />
-          <span>+ fx Formula</span>
+          <span>+ {t('grid.customColumn')}</span>
         </button>
 
         {/* Anonymize Sensitive Data Toggle (RULE 4) */}
         <button
           onClick={() => setAnonymize(!anonymize)}
-          className={`flex items-center gap-1.5 px-2.5 py-1 rounded-lg border text-[11px] font-semibold transition ${
+          className={`flex items-center gap-1.5 px-2.5 py-1 rounded-lg border text-[11px] font-semibold transition cursor-pointer ${
             anonymize
               ? 'bg-amber-100 dark:bg-amber-950/60 text-amber-800 dark:text-amber-300 border-amber-300 dark:border-amber-700 shadow-2xs'
               : 'bg-slate-50 dark:bg-slate-800 text-slate-600 dark:text-slate-400 border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-700 hover:text-slate-800 dark:hover:text-slate-200'
           }`}
-          title="Masking data sensitif vendor (Nominal finansial & No Rekening) sebelum export"
+          title={t('grid.maskingTooltip')}
         >
           <Shield className={`w-3.5 h-3.5 ${anonymize ? 'text-amber-600 dark:text-amber-400' : 'text-slate-400 dark:text-slate-500'}`} />
-          <span>Masking Finansial {anonymize ? 'ON' : 'OFF'}</span>
+          <span>{t('grid.masking')} {anonymize ? t('grid.on') : t('grid.off')}</span>
         </button>
 
         {/* Deduplicate Toggle */}
         <button
           onClick={() => setDeduplicate(!deduplicate)}
-          className={`flex items-center gap-1.5 px-2.5 py-1 rounded-lg border text-[11px] font-semibold transition ${
+          className={`flex items-center gap-1.5 px-2.5 py-1 rounded-lg border text-[11px] font-semibold transition cursor-pointer ${
             deduplicate
               ? 'bg-sky-100 dark:bg-sky-950/60 text-sky-800 dark:text-sky-300 border-sky-300 dark:border-sky-700 shadow-2xs'
               : 'bg-slate-50 dark:bg-slate-800 text-slate-600 dark:text-slate-400 border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-700 hover:text-slate-800 dark:hover:text-slate-200'
           }`}
-          title="Hapus baris ganda (misal invoice berulang)"
+          title={t('grid.dedupTooltip')}
         >
           <CopySlash className={`w-3.5 h-3.5 ${deduplicate ? 'text-sky-600 dark:text-sky-400' : 'text-slate-400 dark:text-slate-500'}`} />
-          <span>Dedup {deduplicate ? 'ON' : 'OFF'}</span>
+          <span>{t('grid.dedup')} {deduplicate ? t('grid.on') : t('grid.off')}</span>
         </button>
 
         {/* Variant Manager Button */}
         <button
           onClick={() => setVariantModalOpen(true)}
-          className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-slate-50 dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 text-[11px] font-semibold transition"
+          className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-slate-50 dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 text-[11px] font-semibold transition cursor-pointer"
         >
           <Bookmark className="w-3.5 h-3.5 text-amber-500 dark:text-amber-400" />
-          <span>{activeVariant ? `Layout: ${activeVariant.name}` : 'Variants / Layout'}</span>
+          <span>{activeVariant ? `${t('grid.layoutPrefix')}: ${activeVariant.name}` : t('grid.variants')}</span>
         </button>
 
         {/* Export Excel Button */}
         <button
           onClick={handleExportExcel}
           disabled={isExporting || totalRows === 0}
-          className="flex items-center gap-1.5 px-3 py-1 rounded-lg bg-emerald-600 hover:bg-emerald-500 disabled:opacity-50 text-white font-bold text-[11px] shadow-xs transition"
+          className="flex items-center gap-1.5 px-3 py-1 rounded-lg bg-emerald-600 hover:bg-emerald-500 disabled:opacity-50 text-white font-bold text-[11px] shadow-xs transition cursor-pointer"
         >
           <FileSpreadsheet className="w-3.5 h-3.5" />
-          <span>{isExporting ? 'Mengekspor...' : 'Export Excel'}</span>
+          <span>{isExporting ? t('grid.exporting') : t('grid.exportExcel')}</span>
         </button>
 
         <span className="text-slate-300 dark:text-slate-700">|</span>
@@ -155,10 +157,10 @@ export const ExportToolbar = () => {
                 ? 'bg-white dark:bg-slate-700 text-sky-600 dark:text-sky-300 font-bold shadow-xs'
                 : 'text-slate-500 hover:text-slate-800 dark:hover:text-slate-200'
             }`}
-            title="Tampilan Split 50:50 (Kanvas + ALV Grid)"
+            title={t('grid.splitTooltip')}
           >
             <Columns2 className="w-3.5 h-3.5" />
-            <span className="hidden sm:inline">Split 50:50</span>
+            <span className="hidden sm:inline">{t('grid.split')}</span>
           </button>
           <button
             onClick={() => setViewMode(viewMode === 'grid' ? 'split' : 'grid')}
@@ -167,15 +169,15 @@ export const ExportToolbar = () => {
                 ? 'bg-white dark:bg-slate-700 text-sky-600 dark:text-sky-300 font-bold shadow-xs'
                 : 'text-slate-500 hover:text-slate-800 dark:hover:text-slate-200'
             }`}
-            title={viewMode === 'grid' ? 'Kembali ke Split' : 'Layar Penuh ALV Grid'}
+            title={viewMode === 'grid' ? t('grid.backToSplitTooltip') : t('grid.fullAlvTooltip')}
           >
             {viewMode === 'grid' ? <Minimize2 className="w-3.5 h-3.5" /> : <Maximize2 className="w-3.5 h-3.5" />}
-            <span className="hidden sm:inline">{viewMode === 'grid' ? 'Split' : 'ALV Penuh'}</span>
+            <span className="hidden sm:inline">{viewMode === 'grid' ? t('grid.split') : t('grid.fullAlv')}</span>
           </button>
           <button
             onClick={() => setViewMode('canvas')}
             className="p-1 px-1.5 rounded-lg text-slate-400 hover:text-red-500 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/40 transition cursor-pointer"
-            title="Tutup ALV (Kembali ke Kanvas Penuh)"
+            title={t('grid.closeAlvTooltip')}
           >
             <X className="w-3.5 h-3.5" />
           </button>

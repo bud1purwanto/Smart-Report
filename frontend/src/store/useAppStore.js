@@ -25,6 +25,9 @@ export const useAppStore = create((set, get) => ({
   // Theme State ('light' | 'dark')
   theme: localStorage.getItem('smart_sqvi_theme') || 'light',
 
+  // Language State ('en' | 'id') - Default: 'en' per user requirement
+  language: localStorage.getItem('smart_report_lang') || 'en',
+
   initTheme: () => {
     const saved = localStorage.getItem('smart_sqvi_theme') || 'light';
     if (saved === 'dark') {
@@ -44,7 +47,25 @@ export const useAppStore = create((set, get) => ({
       document.documentElement.classList.remove('dark');
     }
     set({ theme: nextTheme });
-    get().showNotification(`Mode diubah ke ${nextTheme === 'dark' ? 'Dark Mode 🌙' : 'Light Mode ☀️'}`, 'info');
+    const isEn = get().language === 'en';
+    get().showNotification(
+      isEn ? `Switched to ${nextTheme === 'dark' ? 'Dark Mode 🌙' : 'Light Mode ☀️'}` : `Mode diubah ke ${nextTheme === 'dark' ? 'Dark Mode 🌙' : 'Light Mode ☀️'}`,
+      'info'
+    );
+  },
+
+  setLanguage: (lang) => {
+    localStorage.setItem('smart_report_lang', lang);
+    set({ language: lang });
+    get().showNotification(
+      lang === 'en' ? 'Language changed to English 🇬🇧' : 'Bahasa diubah ke Bahasa Indonesia 🇮🇩',
+      'info'
+    );
+  },
+
+  toggleLanguage: () => {
+    const nextLang = get().language === 'en' ? 'id' : 'en';
+    get().setLanguage(nextLang);
   },
 
   setActiveTab: (tab) => set({ activeTab: tab }),

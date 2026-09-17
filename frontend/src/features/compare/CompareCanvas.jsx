@@ -9,9 +9,11 @@ import {
 import { CompareTableNode } from './CompareTableNode';
 import { useCompareStore } from '../../store/useCompareStore';
 import { useAppStore } from '../../store/useAppStore';
+import { useTranslation } from '../../locales/useTranslation';
 import { Plus, Trash2, Database, Sparkles, SlidersHorizontal } from 'lucide-react';
 
 export const CompareCanvas = () => {
+  const { t } = useTranslation();
   const {
     nodes,
     edges,
@@ -75,7 +77,7 @@ export const CompareCanvas = () => {
               type="text"
               value={inputTable}
               onChange={(e) => setInputTable(e.target.value)}
-              placeholder="Nama tabel SAP..."
+              placeholder={t('canvas.tableInputPlaceholder')}
               onKeyDown={(e) => e.key === 'Enter' && handleAddTable()}
               className="bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg px-2.5 py-1 text-xs text-slate-800 dark:text-slate-200 uppercase font-mono w-32 focus:outline-none focus:border-purple-500"
             />
@@ -85,13 +87,13 @@ export const CompareCanvas = () => {
               className="flex items-center gap-1 px-2.5 py-1 rounded-lg bg-purple-600 hover:bg-purple-500 disabled:opacity-50 text-white text-xs font-semibold transition shadow-xs cursor-pointer"
             >
               <Plus className="w-3.5 h-3.5" />
-              <span>{isAdding ? 'Menambah...' : 'Tambah'}</span>
+              <span>{isAdding ? t('canvas.adding') : t('canvas.add')}</span>
             </button>
           </div>
 
           {/* Quick Add Pills */}
           <div className="hidden sm:flex items-center gap-1 bg-white/95 dark:bg-slate-900/90 border border-slate-200 dark:border-slate-700 rounded-xl p-1 shadow-xs backdrop-blur-sm">
-            <span className="text-[10px] font-bold text-slate-400 dark:text-slate-500 px-1 font-mono uppercase">Quick:</span>
+            <span className="text-[10px] font-bold text-slate-400 dark:text-slate-500 px-1 font-mono uppercase">{t('canvas.quickAdd')}</span>
             {quickTables.map((tbl) => (
               <button
                 key={tbl}
@@ -111,10 +113,10 @@ export const CompareCanvas = () => {
                 ? 'bg-amber-50/95 dark:bg-amber-950/80 border-amber-300 dark:border-amber-700 text-amber-800 dark:text-amber-300'
                 : 'bg-white/95 dark:bg-slate-900/90 hover:bg-slate-50 dark:hover:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-200'
             }`}
-            title="Atur kriteria filter / parameter WHERE untuk komparasi multi-server"
+            title={t('nav.selectionParamTooltip')}
           >
             <SlidersHorizontal className="w-3.5 h-3.5 text-amber-600 dark:text-amber-400" />
-            <span>Parameter</span>
+            <span>{t('nav.params')}</span>
             {filters.length > 0 && (
               <span className="bg-amber-500 text-white text-[10px] font-bold px-1.5 py-0.2 rounded-full">
                 {filters.length}
@@ -126,10 +128,10 @@ export const CompareCanvas = () => {
             <button
               onClick={clearCanvas}
               className="flex items-center gap-1 px-2.5 py-1.5 rounded-xl bg-white/90 dark:bg-slate-900/90 hover:bg-red-50 dark:hover:bg-red-950/40 border border-slate-200 dark:border-slate-700 hover:border-red-200 dark:hover:border-red-800 text-slate-500 dark:text-slate-400 hover:text-red-600 dark:hover:text-red-400 text-xs shadow-xs transition cursor-pointer"
-              title="Bersihkan Kanvas Komparasi"
+              title={t('canvas.resetCanvas')}
             >
               <Trash2 className="w-3.5 h-3.5" />
-              <span>Reset Kanvas</span>
+              <span>{t('canvas.resetCanvas')}</span>
             </button>
           )}
         </Panel>
@@ -140,14 +142,14 @@ export const CompareCanvas = () => {
             <div className="flex items-center gap-1.5 flex-wrap bg-white/95 dark:bg-slate-900/95 border border-amber-300 dark:border-amber-700/80 rounded-2xl p-1.5 px-3 shadow-lg backdrop-blur-md text-[11px]">
               <span className="font-bold text-amber-700 dark:text-amber-400 flex items-center gap-1">
                 <SlidersHorizontal className="w-3 h-3" />
-                <span>WHERE:</span>
+                <span>{t('canvas.whereClause')}</span>
               </span>
               {filters.map((f, idx) => (
                 <span
                   key={idx}
                   onClick={() => setFilterModalOpen(true)}
                   className="font-mono text-[10px] bg-amber-50 dark:bg-amber-950/60 border border-amber-200 dark:border-amber-800 text-amber-900 dark:text-amber-200 px-2 py-0.5 rounded-lg cursor-pointer hover:bg-amber-100 dark:hover:bg-amber-900/60 transition shadow-2xs"
-                  title={`${f.field}${f.fieldtext ? ` (${f.fieldtext})` : ''}: Klik untuk ubah parameter ini`}
+                  title={`${f.field}${f.fieldtext ? ` (${f.fieldtext})` : ''}: ${t('canvas.clickToEditFilter')}`}
                 >
                   {f.field}{f.fieldtext ? ` (${f.fieldtext})` : ''} {f.operator} '{f.value}'{f.valueTo ? `..${f.valueTo}` : ''}
                 </span>
@@ -158,7 +160,7 @@ export const CompareCanvas = () => {
 
         {/* Status Indicator */}
         <Panel position="bottom-left" className="m-3 text-[11px] text-slate-500 dark:text-slate-400 font-mono bg-white/90 dark:bg-slate-900/90 px-3 py-1.5 rounded-xl border border-slate-200 dark:border-slate-800 shadow-2xs backdrop-blur-sm">
-          <span className="font-bold text-purple-700 dark:text-purple-400">Cross-Server Canvas:</span> {nodes.length} Tabel · {edges.length} Relasi Join
+          <span className="font-bold text-purple-700 dark:text-purple-400">Cross-Server Canvas:</span> {nodes.length} {t('canvas.tables')} · {edges.length} {t('canvas.joins')}
         </Panel>
       </ReactFlow>
     </div>
