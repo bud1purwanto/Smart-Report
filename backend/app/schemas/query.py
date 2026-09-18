@@ -33,11 +33,11 @@ class FilterItem(BaseModel):
     valueTo: Optional[Any] = None
 
 class QueryDefinition(BaseModel):
-    tables: List[TableNodeItem] = []
-    joins: List[JoinItem] = []
-    selectedFields: List[FieldSelectionItem] = []
-    filters: List[FilterItem] = []
-    customColumns: Optional[List[Dict[str, Any]]] = []
+    tables: List[TableNodeItem] = Field(default_factory=list)
+    joins: List[JoinItem] = Field(default_factory=list)
+    selectedFields: List[FieldSelectionItem] = Field(default_factory=list)
+    filters: List[FilterItem] = Field(default_factory=list)
+    customColumns: Optional[List[Dict[str, Any]]] = Field(default_factory=list)
     pivotConfig: Optional[Dict[str, Any]] = None
     anonymize: Optional[bool] = False
     deduplicate: Optional[bool] = False

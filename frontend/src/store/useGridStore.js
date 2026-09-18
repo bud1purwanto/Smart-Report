@@ -38,32 +38,6 @@ export const useGridStore = create((set, get) => ({
     let finalDefs = [...(column_defs || [])];
     let finalCols = [...(columns || [])];
 
-    // 1. Re-evaluate custom calculated formula columns if defined in project
-    if (customColumns && customColumns.length > 0) {
-      customColumns.forEach((col) => {
-        finalRows = finalRows.map((row) => {
-          try {
-            const evalVal = Function('row', `try { return (${col.formula}); } catch(e) { return null; }`)(row);
-            return { ...row, [col.name]: evalVal };
-          } catch {
-            return { ...row, [col.name]: null };
-          }
-        });
-        if (!finalDefs.some((d) => d.field === col.name)) {
-          finalDefs.push({
-            field: col.name,
-            headerName: `fx: ${col.name}`,
-            sortable: true,
-            filter: true,
-            cellClass: 'bg-indigo-950/30 text-indigo-300 font-mono font-semibold',
-          });
-        }
-        if (!finalCols.includes(col.name)) {
-          finalCols.push(col.name);
-        }
-      });
-    }
-
     set({
       columns: finalCols,
       columnDefs: finalDefs,
@@ -102,35 +76,10 @@ export const useGridStore = create((set, get) => ({
   setDeduplicate: (val) => set({ deduplicate: val }),
 
   addCustomColumn: (name, formula) => {
-    const { customColumns, columnDefs, rowData } = get();
+    const { customColumns } = get();
     const newCol = { name, formula, datatype: 'number' };
     const updatedCustom = [...customColumns.filter((c) => c.name !== name), newCol];
-
-    // Compute preview value for rows
-    const updatedRows = rowData.map((row) => {
-      try {
-        // Safe row evaluation
-        const evalVal = Function('row', `try { return (${formula}); } catch(e) { return null; }`)(row);
-        return { ...row, [name]: evalVal };
-      } catch {
-        return { ...row, [name]: null };
-      }
-    });
-
-    const newColDef = {
-      field: name,
-      headerName: `fx: ${name}`,
-      sortable: true,
-      filter: true,
-      cellClass: 'bg-indigo-950/30 text-indigo-300 font-mono font-semibold',
-    };
-
-    set({
-      customColumns: updatedCustom,
-      columnDefs: [...columnDefs, newColDef],
-      columns: [...get().columns, name],
-      rowData: updatedRows,
-    });
+    set({ customColumns: updatedCustom });
   },
 
   removeCustomColumn: (name) => {
@@ -344,4 +293,3 @@ export const useGridStore = create((set, get) => ({
     });
   },
 }));
-

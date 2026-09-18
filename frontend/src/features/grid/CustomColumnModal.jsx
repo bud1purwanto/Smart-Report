@@ -18,7 +18,7 @@ export const CustomColumnModal = () => {
       return;
     }
     addCustomColumn(columnName.trim().toUpperCase(), formula.trim());
-    showNotification(`Kolom formula ${columnName} berhasil ditambahkan ke grid ALV.`, 'success');
+    showNotification(`Formula ${columnName} tersimpan. Jalankan ulang query untuk menghitungnya dengan aman.`, 'success');
     setColumnName('');
     setFormula('');
     setFormulaModalOpen(false);
@@ -59,7 +59,7 @@ export const CustomColumnModal = () => {
           </div>
 
           <div>
-            <label className="block font-bold text-slate-700 dark:text-slate-300 mb-1">Formula Ekspresi (Javascript / Pandas):</label>
+            <label className="block font-bold text-slate-700 dark:text-slate-300 mb-1">Formula aritmetika:</label>
             <textarea
               rows={3}
               value={formula}

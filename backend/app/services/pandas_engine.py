@@ -1,11 +1,10 @@
 import io
-import re
-import math
 from typing import List, Dict, Any, Optional, Tuple
 import pandas as pd
 from openpyxl import Workbook
 from openpyxl.styles import Font, PatternFill, Alignment, Border, Side
 from openpyxl.utils import get_column_letter
+from app.services.formula_engine import evaluate_formula
 
 # Sensitive financial, tax, and banking fields for vendor data masking
 SENSITIVE_VENDOR_FIELDS = {
@@ -100,26 +99,7 @@ class PandasEngine:
             if not col_name or not formula:
                 continue
 
-            # Convert formula format 'row.COL' or 'row["COL"]' into df evaluation
-            # Example: 'row.Quantity * row.Net_Price' -> df['Quantity'] * df['Net_Price']
-            def eval_row(row):
-                try:
-                    # Provide local context for row evaluation
-                    context = {"row": row, "math": math}
-                    # Replace row.FIELD with row['FIELD'] if needed
-                    expr = re.sub(r'row\.([A-Za-z0-9_]+)', r'row["\1"]', formula)
-                    return eval(expr, {"__builtins__": {}}, context)
-                except Exception:
-                    return None
-
-            try:
-                # First try vectorized pandas eval if valid expression
-                clean_expr = re.sub(r'row\[[\'"]([A-Za-z0-9_]+)[\'"]\]', r'`\1`', formula)
-                clean_expr = re.sub(r'row\.([A-Za-z0-9_]+)', r'`\1`', clean_expr)
-                result_df[col_name] = result_df.eval(clean_expr)
-            except Exception:
-                # Fallback to apply eval_row
-                result_df[col_name] = result_df.apply(eval_row, axis=1)
+            result_df[col_name] = evaluate_formula(result_df, formula)
 
         return result_df
 
