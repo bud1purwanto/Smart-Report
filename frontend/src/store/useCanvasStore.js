@@ -55,7 +55,8 @@ export const useCanvasStore = create((set, get) => ({
       }
     }
 
-    const nodeId = `node_${tableUpper.toLowerCase()}_${Date.now().toString().slice(-4)}`;
+    const uniqueId = globalThis.crypto?.randomUUID?.() || `${Date.now()}_${Math.random().toString(36).slice(2)}`;
+    const nodeId = `node_${tableUpper.toLowerCase()}_${uniqueId}`;
     const position = customPos || {
       x: 60 + nodes.length * 280,
       y: 60 + (nodes.length % 2) * 50,
@@ -347,4 +348,3 @@ export const useCanvasStore = create((set, get) => ({
     };
   },
 }));
-
