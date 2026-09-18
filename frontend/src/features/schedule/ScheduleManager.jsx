@@ -66,7 +66,7 @@ export const ScheduleManager = () => {
       setName('');
       await loadData();
     } catch (err) {
-      showNotification('Gagal membuat jadwal: ' + err.message, 'error');
+      showNotification('Gagal membuat jadwal: ' + (err.normalized?.message || err.message), 'error');
     }
   };
 
@@ -76,7 +76,7 @@ export const ScheduleManager = () => {
       showNotification(`Jadwal ${sName} dihapus.`, 'info');
       await loadData();
     } catch (err) {
-      showNotification('Gagal menghapus jadwal: ' + err.message, 'error');
+      showNotification('Gagal menghapus jadwal: ' + (err.normalized?.message || err.message), 'error');
     }
   };
 
@@ -87,7 +87,7 @@ export const ScheduleManager = () => {
       showNotification(`Jadwal ${sName} berhasil dieksekusi: Status ${res.data.status}`, 'success');
       await loadData();
     } catch (err) {
-      showNotification('Gagal eksekusi jadwal: ' + err.message, 'error');
+      showNotification('Gagal eksekusi jadwal: ' + (err.normalized?.message || err.message), 'error');
     } finally {
       setRunningId(null);
     }

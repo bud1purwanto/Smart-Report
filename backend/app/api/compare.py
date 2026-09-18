@@ -7,7 +7,7 @@ from sqlalchemy.orm import Session
 from app.core.database import get_db
 from app.models.server_profile import SapServerProfile
 from app.schemas.compare import CompareRequest, CompareResponse, CompareSummary, RowDiff
-from app.services.pandas_engine import pandas_engine
+from app.services.pandas_engine import pandas_engine, DuplicateComparisonKeyError
 from app.services.query_executor import fetch_query_dataset
 
 router = APIRouter(prefix="/compare", tags=["Cross-Server Compare"])
@@ -60,11 +60,14 @@ async def compare_across_servers(
         key_fields = [df_b.columns[0]]
 
     # RULE 1 COMPLIANCE: In-memory diffing via Pandas
-    summary_raw, diff_rows_raw = pandas_engine.diff_datasets(
-        df_a=df_a,
-        df_b=df_b,
-        key_fields=key_fields
-    )
+    try:
+        summary_raw, diff_rows_raw = pandas_engine.diff_datasets(
+            df_a=df_a,
+            df_b=df_b,
+            key_fields=key_fields
+        )
+    except DuplicateComparisonKeyError as exc:
+        raise HTTPException(status_code=422, detail=str(exc)) from exc
 
     summary = CompareSummary(
         server_a_name=server_a.name,

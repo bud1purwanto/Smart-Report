@@ -11,7 +11,7 @@ Sistem custom web pengganti reporting visual SAP berbasis React, React Flow, AG 
 - **Frontend:** React.js, React Flow (`@xyflow/react`), AG Grid Community (`ag-grid-react`), Zustand, TailwindCSS, Lucide Icons.
 - **Backend:** FastAPI (Asynchronous `async def`), Pandas (Diffing, Custom Formula, Anonymization, Deduplication), OpenPyXL, Cryptography (AES-Fernet), APScheduler (Task Scheduler).
 - **Database:** PostgreSQL (`ABAP_DB`), Schema: `smart_report`.
-- **Koneksi SAP:** HTTP MCP Gateway (`http://192.168.1.161:4000/v1/gateway`) dengan dynamic credential headers (`X-SAP-User`, `X-SAP-Password`, `X-SAP-Client`).
+- **Koneksi SAP:** HTTP MCP Gateway yang dikonfigurasi melalui environment, dengan dynamic credential headers (`X-SAP-User`, `X-SAP-Password`, `X-SAP-Client`).
 - **AI Engine:** Local Ollama (`qwen2.5:3b` pada `http://localhost:11434`) dengan fallback OpenAI API.
 
 ---
@@ -98,5 +98,4 @@ Untuk menjalankan suite pengujian unit dan integrasi:
 source backend/venv/bin/activate
 PYTHONPATH=backend pytest backend/tests/
 ```
-Hasil pengujian: **12 tests passed (100% Success)**
-
+Jalankan suite pada environment pengujian yang terisolasi; jumlah test berubah mengikuti penambahan regresi.

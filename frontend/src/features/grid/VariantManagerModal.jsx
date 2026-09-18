@@ -67,7 +67,7 @@ export const VariantManagerModal = () => {
       await loadVariants();
       applyVariant(res.data);
     } catch (err) {
-      showNotification('Gagal menyimpan variant: ' + err.message, 'error');
+      showNotification('Gagal menyimpan variant: ' + (err.normalized?.message || err.message), 'error');
     }
   };
 
@@ -77,7 +77,7 @@ export const VariantManagerModal = () => {
       showNotification(`Variant ${name} dihapus.`, 'info');
       await loadVariants();
     } catch (err) {
-      showNotification('Gagal menghapus variant: ' + err.message, 'error');
+      showNotification('Gagal menghapus variant: ' + (err.normalized?.message || err.message), 'error');
     }
   };
 

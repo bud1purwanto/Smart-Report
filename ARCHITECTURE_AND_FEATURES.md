@@ -40,11 +40,11 @@
   * **Styling:** TailwindCSS v4 dengan dukungan penuh Dark/Light Mode
   * **Icons:** Lucide React
 * **Backend:**
-  * **Framework:** FastAPI (Python 3.13) dengan *fully asynchronous handlers* (`async def`)
+  * **Framework:** FastAPI (Python 3.13); operasi jaringan SAP bersifat asynchronous, sedangkan migrasi ORM async dilakukan bertahap.
   * **Data Processing & Diff Engine:** Pandas & NumPy
   * **Excel Generator:** OpenPyXL (dengan styling SAP Classic Blue ALV)
-  * **Koneksi SAP Gateway:** PyRFC / HTTP MCP RFC Gateway (`RFC_READ_TABLE`, `DD03M`, dsb.)
-  * **Security & Kriptografi:** Cryptography (`AES-256 Fernet`)
+  * **Koneksi SAP Gateway:** HTTP MCP Gateway yang menjalankan Custom Function Module SAP dan akses DDIC.
+  * **Security & Kriptografi:** Cryptography Fernet (authenticated symmetric encryption).
   * **Scheduler:** APScheduler (Background task berbasis ekspresi cron)
 * **Database:**
   * PostgreSQL (`ABAP_DB`), schema: `smart_report`
@@ -118,7 +118,7 @@ Dalam modul **Cross-Server Diff**, sistem mematuhi arsitektur non-blocking:
 
 ### 2.4 Arsitektur Keamanan & Enkripsi Kredensial
 
-* **Enkripsi Kredensial (AES-256 Fernet):** Password SAP yang dimasukkan pengguna dienkripsi dengan secret key sebelum disimpan di tabel `smart_report.sap_server_profiles`.
+* **Enkripsi Kredensial (Fernet):** Password SAP yang dimasukkan pengguna dienkripsi dan diautentikasi sebelum disimpan di tabel `smart_report.sap_server_profiles`.
 * **Zero Password Exposure:** Password tidak pernah dikirim balik ke client frontend pada response API profil server (hanya kolom masked `••••••••`).
 * **In-Memory Decryption:** Password hanya didekripsi di dalam memori backend pada saat request RFC ke gateway SAP dijalankan.
 

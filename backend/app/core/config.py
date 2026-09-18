@@ -1,6 +1,6 @@
 import os
 from pydantic_settings import BaseSettings, SettingsConfigDict
-from pydantic import Field, field_validator
+from pydantic import Field, field_validator, model_validator
 from cryptography.fernet import Fernet
 
 class Settings(BaseSettings):
@@ -8,6 +8,7 @@ class Settings(BaseSettings):
     API_V1_STR: str = "/api/v1"
     DEBUG: bool = True
     APP_ENV: str = Field(default="development", validation_alias="APP_ENV")
+    CORS_ORIGINS: list[str] = Field(default_factory=lambda: ["http://localhost:5173"])
 
     @field_validator("DEBUG", mode="before")
     @classmethod
@@ -55,6 +56,15 @@ class Settings(BaseSettings):
         except (TypeError, ValueError) as exc:
             raise ValueError("SECRET_ENCRYPTION_KEY must be a valid Fernet key") from exc
         return value
+
+    @model_validator(mode="after")
+    def reject_unsafe_production_settings(self):
+        if self.APP_ENV.lower() == "production":
+            if "*" in self.CORS_ORIGINS:
+                raise ValueError("CORS_ORIGINS cannot contain '*' in production")
+            if self.DEBUG:
+                raise ValueError("DEBUG must be false in production")
+        return self
 
     # AI Engine
     OLLAMA_BASE_URL: str = Field(

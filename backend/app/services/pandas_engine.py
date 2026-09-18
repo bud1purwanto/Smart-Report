@@ -13,6 +13,10 @@ SENSITIVE_VENDOR_FIELDS = {
     "WAERS_VAL", "SALES_VAL", "AMOUNT", "SALARY", "PRICE"
 }
 
+
+class DuplicateComparisonKeyError(ValueError):
+    """Raised when comparison keys do not uniquely identify rows."""
+
 class PandasEngine:
     """
     Pandas-based high-performance in-memory calculation, diffing, deduplication, 
@@ -135,6 +139,10 @@ class PandasEngine:
             if not keys and all_cols:
                 keys = [all_cols[0]]
 
+        # Work on copies so comparison never mutates caller-owned frames.
+        df_a = df_a.copy()
+        df_b = df_b.copy()
+
         # Ensure all cols exist in both frames
         for c in all_cols:
             if c not in df_a.columns:
@@ -151,6 +159,14 @@ class PandasEngine:
 
         df_a_indexed["_diff_key_"] = df_a_indexed.apply(make_key_str, axis=1)
         df_b_indexed["_diff_key_"] = df_b_indexed.apply(make_key_str, axis=1)
+
+        duplicates_a = df_a_indexed.loc[df_a_indexed["_diff_key_"].duplicated(False), "_diff_key_"].unique()
+        duplicates_b = df_b_indexed.loc[df_b_indexed["_diff_key_"].duplicated(False), "_diff_key_"].unique()
+        if len(duplicates_a) or len(duplicates_b):
+            samples = list(duplicates_a[:3]) + list(duplicates_b[:3])
+            raise DuplicateComparisonKeyError(
+                f"Comparison key is not unique. Select a complete composite key. Examples: {', '.join(samples)}"
+            )
 
         dict_a = {row["_diff_key_"]: row.to_dict() for _, row in df_a_indexed.iterrows()}
         dict_b = {row["_diff_key_"]: row.to_dict() for _, row in df_b_indexed.iterrows()}
@@ -245,8 +261,9 @@ class PandasEngine:
         if deduplicate:
             work_df = cls.deduplicate(work_df, dedup_keys)
 
-        if anonymize:
-            work_df = cls.anonymize(work_df)
+        # Sensitive-field policy is mandatory for every exported workbook.
+        # The legacy flag is retained for API compatibility but cannot disable it.
+        work_df = cls.anonymize(work_df)
 
         wb = Workbook()
         ws = wb.active

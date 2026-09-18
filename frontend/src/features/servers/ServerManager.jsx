@@ -19,7 +19,7 @@ export const ServerManager = () => {
         showNotification(`Koneksi ke ${sName} gagal: ${res.data.error || 'Timeout'}`, 'error');
       }
     } catch (err) {
-      showNotification(`Gagal test koneksi ${sName}: ${err.message}`, 'error');
+      showNotification(`Gagal test koneksi ${sName}: ${err.normalized?.message || err.message}`, 'error');
     } finally {
       setTestingId(null);
     }

@@ -2,6 +2,8 @@ import pandas as pd
 import pytest
 
 from app.services.formula_engine import FormulaValidationError, evaluate_formula
+from app.schemas.query import QueryDefinition
+from pydantic import ValidationError
 
 
 def test_formula_engine_evaluates_whitelisted_column_arithmetic():
@@ -27,3 +29,19 @@ def test_formula_engine_rejects_code_execution_and_unknown_columns(expression):
 
     with pytest.raises(FormulaValidationError):
         evaluate_formula(df, expression)
+
+
+def test_query_definition_rejects_unsafe_identifiers_and_row_limit():
+    with pytest.raises(ValidationError):
+        QueryDefinition(
+            tables=[{"id": "t1", "table": "MARA; DROP TABLE USERS"}],
+            options={"rowcount": 1_000_000},
+        )
+
+
+def test_query_definition_rejects_unknown_filter_operator():
+    with pytest.raises(ValidationError):
+        QueryDefinition(
+            tables=[{"id": "t1", "table": "MARA"}],
+            filters=[{"field": "MARA.MATNR", "operator": "EXEC", "value": "x"}],
+        )

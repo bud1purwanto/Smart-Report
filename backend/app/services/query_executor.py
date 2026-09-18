@@ -8,9 +8,8 @@ logger = logging.getLogger("smart_report.query_executor")
 
 def build_rfc_where_clauses(clauses: List[str], connector: str = "AND") -> List[str]:
     """
-    Formats a list of WHERE conditions into lines strictly <= 70 characters
-    complying with SAP RFC_READ_TABLE OPTIONS table constraints (CHAR 72 limit).
-    Each line except the last ends with the connector (e.g. ' AND' or ' OR').
+    Formats WHERE conditions for the MCP Server's custom SAP read function.
+    The legacy function name is retained for saved integrations.
     """
     if not clauses:
         return []
@@ -340,4 +339,3 @@ async def fetch_query_dataset(
                         df.drop(columns=[f'_k_prim_{i}' for i in range(len(left_keys))] + [f'_k_sec_{i}' for i in range(len(right_keys))], inplace=True, errors='ignore')
 
     return df
-

@@ -13,7 +13,7 @@ class ReportSchedule(Base):
     cron_expression = Column(String(100), nullable=False, default="0 8 * * *")
     channel = Column(String(50), nullable=False, default="telegram")
     telegram_chat_id = Column(String(100), nullable=True)
-    telegram_bot_token = Column(String(255), nullable=True)
+    telegram_bot_token = Column(Text, nullable=True)
     anonymize = Column(Boolean, nullable=False, default=True)
     deduplicate = Column(Boolean, nullable=False, default=True)
     export_format = Column(String(20), nullable=False, default="xlsx")
@@ -28,4 +28,3 @@ class ReportSchedule(Base):
     query = relationship("SavedQuery", back_populates="schedules")
     server = relationship("SapServerProfile")
     variant = relationship("ReportVariant")
-

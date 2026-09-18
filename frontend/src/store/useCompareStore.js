@@ -237,10 +237,9 @@ export const useCompareStore = create((set, get) => ({
       set({ compareResult: res.data, isComparing: false });
       return res.data;
     } catch (err) {
-      const msg = err.response?.data?.detail || err.message;
+      const msg = err.normalized?.message || err.message;
       set({ error: typeof msg === 'object' ? JSON.stringify(msg) : msg, isComparing: false });
       throw err;
     }
   },
 }));
-

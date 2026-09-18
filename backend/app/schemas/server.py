@@ -1,5 +1,5 @@
 from typing import List, Optional
-from pydantic import BaseModel, ConfigDict
+from pydantic import BaseModel, ConfigDict, Field
 from datetime import datetime
 
 class ServerProfileBase(BaseModel):
@@ -11,7 +11,7 @@ class ServerProfileBase(BaseModel):
     username: str
     environment: str = "development" # development, qa, production, sandbox
     is_active: bool = True
-    aliases: List[str] = []
+    aliases: List[str] = Field(default_factory=list)
     description: Optional[str] = None
 
 class ServerProfileCreate(ServerProfileBase):

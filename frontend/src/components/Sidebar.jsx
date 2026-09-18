@@ -93,11 +93,11 @@ export const Sidebar = () => {
         <div className="rounded-xl bg-white dark:bg-slate-800/90 border border-slate-200/90 dark:border-slate-700 p-3 shadow-xs space-y-2">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <span className="w-2 h-2 rounded-full bg-emerald-500 ring-4 ring-emerald-100 dark:ring-emerald-950/60 animate-pulse"></span>
-              <span className="text-xs font-bold text-slate-800 dark:text-slate-100">{t('sidebar.liveGateway')}</span>
+              <span className={`w-2 h-2 rounded-full ${activeServer?.is_active ? 'bg-sky-500 ring-4 ring-sky-100 dark:ring-sky-950/60' : 'bg-slate-400'}`}></span>
+              <span className="text-xs font-bold text-slate-800 dark:text-slate-100">Profil SAP</span>
             </div>
             <span className="text-[10px] bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800 px-1.5 py-0.2 rounded font-mono font-bold">
-              {t('sidebar.online')}
+              {activeServer?.is_active ? 'AKTIF' : 'NONAKTIF'}
             </span>
           </div>
           <div className="text-[11px] text-slate-500 dark:text-slate-400">

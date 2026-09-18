@@ -1,12 +1,18 @@
 import os
+import logging
+import uuid
 from contextlib import asynccontextmanager
-from fastapi import FastAPI
+from fastapi import FastAPI, HTTPException, Request
+from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
-from fastapi.responses import FileResponse
+from fastapi.responses import FileResponse, JSONResponse
 from app.core.config import settings
 from app.api import api_router
 from app.tasks.scheduler import start_scheduler, shutdown_scheduler
+from app.core.errors import error_payload
+
+logger = logging.getLogger("smart_report.api")
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -28,10 +34,74 @@ app = FastAPI(
     lifespan=lifespan
 )
 
+
+@app.middleware("http")
+async def correlation_id_middleware(request: Request, call_next):
+    correlation_id = request.headers.get("X-Correlation-ID") or str(uuid.uuid4())
+    request.state.correlation_id = correlation_id
+    response = await call_next(request)
+    response.headers["X-Correlation-ID"] = correlation_id
+    return response
+
+
+@app.exception_handler(RequestValidationError)
+async def request_validation_error_handler(request: Request, exc: RequestValidationError):
+    correlation_id = getattr(request.state, "correlation_id", str(uuid.uuid4()))
+    return JSONResponse(
+        status_code=422,
+        content=error_payload(
+            "VALIDATION_ERROR",
+            "Request validation failed",
+            correlation_id,
+            False,
+            exc.errors(),
+        ),
+        headers={"X-Correlation-ID": correlation_id},
+    )
+
+
+@app.exception_handler(HTTPException)
+async def http_error_handler(request: Request, exc: HTTPException):
+    correlation_id = getattr(request.state, "correlation_id", str(uuid.uuid4()))
+    detail = exc.detail
+    if isinstance(detail, dict):
+        message = detail.get("message") or detail.get("detail") or "Request failed"
+        details = detail.get("details") or detail.get("validation_errors")
+    else:
+        message = str(detail)
+        details = None
+    return JSONResponse(
+        status_code=exc.status_code,
+        content=error_payload(
+            "REQUEST_ERROR",
+            message,
+            correlation_id,
+            exc.status_code >= 500,
+            details,
+        ),
+        headers={"X-Correlation-ID": correlation_id},
+    )
+
+
+@app.exception_handler(Exception)
+async def unhandled_error_handler(request: Request, exc: Exception):
+    correlation_id = getattr(request.state, "correlation_id", str(uuid.uuid4()))
+    logger.exception("Unhandled API error correlation_id=%s", correlation_id)
+    return JSONResponse(
+        status_code=500,
+        content=error_payload(
+            "INTERNAL_ERROR",
+            "An unexpected server error occurred",
+            correlation_id,
+            True,
+        ),
+        headers={"X-Correlation-ID": correlation_id},
+    )
+
 # CORS Middleware
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=settings.CORS_ORIGINS,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -41,9 +111,9 @@ app.add_middleware(
 app.include_router(api_router, prefix=settings.API_V1_STR)
 
 @app.get("/health")
-def health_check():
+async def health_check():
     return {
-        "status": "healthy",
+        "status": "alive",
         "service": settings.PROJECT_NAME,
         "api_version": "v1"
     }
@@ -69,4 +139,3 @@ if os.path.exists(dist_to_use):
 if __name__ == "__main__":
     import uvicorn
     uvicorn.run("main:app", host="0.0.0.0", port=8001, reload=True)
-
