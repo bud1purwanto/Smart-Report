@@ -62,10 +62,19 @@ cd "$SCRIPT_DIR/backend"
 uvicorn main:app --host "$HOST" --port "$PORT" --reload &
 BACKEND_PID=$!
 
+# Collect IP addresses
+IP_LIST=$(hostname -I 2>/dev/null || ip -4 addr show 2>/dev/null | grep -oP '(?<=inet\s)\d+(\.\d+){3}' || echo "127.0.0.1")
+
 echo ""
-echo "✅ Smart Report is running!"
-echo "   👉 Web Interface: http://localhost:$PORT"
-echo "   👉 API Docs:       http://localhost:$PORT/api/v1/docs"
+echo "✅ Smart Report is running and ready for network access!"
+echo "   👉 Local:       http://localhost:$PORT"
+for ip_addr in $IP_LIST; do
+    # Skip docker internal bridges in display if other IPs exist
+    if [[ ! "$ip_addr" =~ ^172\.(1[7-9]|2[0-9]|3[0-1])\. ]]; then
+        echo "   👉 Network IP:  http://$ip_addr:$PORT"
+    fi
+done
+echo "   👉 API Docs:    http://localhost:$PORT/api/v1/docs"
 echo "=================================================="
 echo "Press Ctrl+C to stop the application."
 echo ""
