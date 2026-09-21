@@ -32,7 +32,7 @@ export const AiAssistantModal = () => {
       setAiResult(res.data);
       showNotification('AI berhasil menyusun visual query.', 'success');
     } catch (err) {
-      const msg = err.response?.data?.detail || err.message;
+      const msg = err.normalized?.message || err.message;
       showNotification(`Gagal terjemah prompt AI: ${msg}`, 'error');
     } finally {
       setIsLoading(false);
@@ -46,7 +46,7 @@ export const AiAssistantModal = () => {
       showNotification('Visual query berhasil diterapkan ke kanvas!', 'success');
       setAiModalOpen(false);
     } catch (err) {
-      showNotification('Gagal menerapkan ke kanvas: ' + err.message, 'error');
+      showNotification('Gagal menerapkan ke kanvas: ' + (err.normalized?.message || err.message), 'error');
     }
   };
 

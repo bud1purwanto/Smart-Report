@@ -1,4 +1,4 @@
-import React, { useMemo, useCallback, useEffect } from 'react';
+import React, { useMemo, useCallback, useEffect, useState } from 'react';
 import {
   ReactFlow,
   Background,
@@ -12,8 +12,10 @@ import { useAppStore } from '../../store/useAppStore';
 import { useGridStore } from '../../store/useGridStore';
 import { useTranslation } from '../../locales/useTranslation';
 import { Plus, Trash2, Maximize2, Sparkles, Layers, SlidersHorizontal, Table2, GitFork, Link2 } from 'lucide-react';
+import { ConfirmDialog } from '../../components/ui/ConfirmDialog';
 
 export const VisualCanvas = () => {
+  const [resetConfirmOpen, setResetConfirmOpen] = useState(false);
   const { t } = useTranslation();
   const {
     nodes,
@@ -104,7 +106,7 @@ export const VisualCanvas = () => {
               </button>
 
               <button
-                onClick={clearCanvas}
+                onClick={() => setResetConfirmOpen(true)}
                 className="flex items-center gap-1 px-2.5 py-1.5 rounded-xl bg-white/90 dark:bg-slate-900/90 hover:bg-red-50 dark:hover:bg-red-950/50 border border-slate-200 dark:border-slate-700 hover:border-red-200 dark:hover:border-red-800 text-slate-500 dark:text-slate-400 hover:text-red-600 dark:hover:text-red-400 text-xs shadow-xs transition cursor-pointer"
                 title={t('canvas.resetCanvas')}
               >
@@ -113,6 +115,19 @@ export const VisualCanvas = () => {
             </>
           )}
         </Panel>
+
+        {nodes.length === 0 && (
+          <Panel position="top-center" className="!left-1/2 !top-1/2 !-translate-x-1/2 !-translate-y-1/2">
+            <div className="w-[min(440px,calc(100vw-2rem))] rounded-2xl border border-slate-200 bg-white/95 p-6 text-center shadow-xl backdrop-blur dark:border-slate-800 dark:bg-slate-900/95">
+              <div className="mx-auto grid h-12 w-12 place-items-center rounded-2xl bg-sky-50 text-sky-600 dark:bg-sky-950/60 dark:text-sky-400"><Table2 className="h-6 w-6" /></div>
+              <h2 className="mt-4 text-lg font-extrabold text-slate-900 dark:text-white">Mulai dari tabel SAP</h2>
+              <p className="mt-2 text-sm leading-6 text-slate-600 dark:text-slate-300">Tambahkan tabel pertama. Smart Report akan membaca metadata DDIC dan menyarankan join ketika tabel berikutnya ditambahkan.</p>
+              <button onClick={() => setTableCatalogOpen(true)} className="mt-5 min-h-10 rounded-xl bg-sky-600 px-4 text-sm font-bold text-white shadow-sm hover:bg-sky-500 focus:outline-none focus:ring-2 focus:ring-sky-500 focus:ring-offset-2">
+                Pilih tabel SAP
+              </button>
+            </div>
+          </Panel>
+        )}
 
         {/* Pending Connection Banner */}
         {pendingConnection && (
@@ -172,7 +187,17 @@ export const VisualCanvas = () => {
           </Panel>
         )}
       </ReactFlow>
+      <ConfirmDialog
+        open={resetConfirmOpen}
+        title="Kosongkan seluruh kanvas?"
+        description="Semua tabel, join, field terpilih, dan filter yang belum disimpan akan dihapus dari project aktif."
+        confirmLabel="Kosongkan kanvas"
+        onCancel={() => setResetConfirmOpen(false)}
+        onConfirm={() => {
+          clearCanvas();
+          setResetConfirmOpen(false);
+        }}
+      />
     </div>
   );
 };
-

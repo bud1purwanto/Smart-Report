@@ -59,7 +59,7 @@ export const TableCatalogModal = () => {
       await addTableNode(tbl);
       setTableCatalogOpen(false);
     } catch (err) {
-      const msg = err.response?.data?.detail || err.message;
+      const msg = err.normalized?.message || err.message;
       showNotification(`Gagal sinkronisasi ${tbl}: ${msg}`, 'error');
     } finally {
       setIsSyncing(false);

@@ -78,7 +78,8 @@ export const useCompareStore = create((set, get) => ({
       }
     }
 
-    const nodeId = `cmp_node_${tableUpper.toLowerCase()}_${Date.now().toString().slice(-4)}`;
+    const uniqueId = globalThis.crypto?.randomUUID?.() || `${Date.now()}_${Math.random().toString(36).slice(2)}`;
+    const nodeId = `cmp_node_${tableUpper.toLowerCase()}_${uniqueId}`;
     const position = customPos || {
       x: 60 + nodes.length * 280,
       y: 60 + (nodes.length % 2) * 50,
@@ -115,7 +116,7 @@ export const useCompareStore = create((set, get) => ({
       try {
         const ajRes = await getAutoJoin(existingTable, tableUpper);
         const suggestions = ajRes.data;
-        if (suggestions && suggestions.length > 0) {
+        if (suggestions && suggestions.length > 0 && suggestions[0].confidence >= 0.85) {
           const topJoin = suggestions[0];
           const edgeId = `cmp_e_${existingNode.id}_${nodeId}_${topJoin.source_field}`;
           const exists = newEdges.some(
@@ -237,10 +238,9 @@ export const useCompareStore = create((set, get) => ({
       set({ compareResult: res.data, isComparing: false });
       return res.data;
     } catch (err) {
-      const msg = err.response?.data?.detail || err.message;
+      const msg = err.normalized?.message || err.message;
       set({ error: typeof msg === 'object' ? JSON.stringify(msg) : msg, isComparing: false });
       throw err;
     }
   },
 }));
-

@@ -1,11 +1,10 @@
 import io
-import re
-import math
 from typing import List, Dict, Any, Optional, Tuple
 import pandas as pd
 from openpyxl import Workbook
 from openpyxl.styles import Font, PatternFill, Alignment, Border, Side
 from openpyxl.utils import get_column_letter
+from app.services.formula_engine import evaluate_formula
 
 # Sensitive financial, tax, and banking fields for vendor data masking
 SENSITIVE_VENDOR_FIELDS = {
@@ -13,6 +12,10 @@ SENSITIVE_VENDOR_FIELDS = {
     "WRBTR", "DMBTR", "PSWBT", "NETPR", "NETWR", "BRTWR", "KBETR",
     "WAERS_VAL", "SALES_VAL", "AMOUNT", "SALARY", "PRICE"
 }
+
+
+class DuplicateComparisonKeyError(ValueError):
+    """Raised when comparison keys do not uniquely identify rows."""
 
 class PandasEngine:
     """
@@ -100,26 +103,7 @@ class PandasEngine:
             if not col_name or not formula:
                 continue
 
-            # Convert formula format 'row.COL' or 'row["COL"]' into df evaluation
-            # Example: 'row.Quantity * row.Net_Price' -> df['Quantity'] * df['Net_Price']
-            def eval_row(row):
-                try:
-                    # Provide local context for row evaluation
-                    context = {"row": row, "math": math}
-                    # Replace row.FIELD with row['FIELD'] if needed
-                    expr = re.sub(r'row\.([A-Za-z0-9_]+)', r'row["\1"]', formula)
-                    return eval(expr, {"__builtins__": {}}, context)
-                except Exception:
-                    return None
-
-            try:
-                # First try vectorized pandas eval if valid expression
-                clean_expr = re.sub(r'row\[[\'"]([A-Za-z0-9_]+)[\'"]\]', r'`\1`', formula)
-                clean_expr = re.sub(r'row\.([A-Za-z0-9_]+)', r'`\1`', clean_expr)
-                result_df[col_name] = result_df.eval(clean_expr)
-            except Exception:
-                # Fallback to apply eval_row
-                result_df[col_name] = result_df.apply(eval_row, axis=1)
+            result_df[col_name] = evaluate_formula(result_df, formula)
 
         return result_df
 
@@ -155,6 +139,10 @@ class PandasEngine:
             if not keys and all_cols:
                 keys = [all_cols[0]]
 
+        # Work on copies so comparison never mutates caller-owned frames.
+        df_a = df_a.copy()
+        df_b = df_b.copy()
+
         # Ensure all cols exist in both frames
         for c in all_cols:
             if c not in df_a.columns:
@@ -171,6 +159,14 @@ class PandasEngine:
 
         df_a_indexed["_diff_key_"] = df_a_indexed.apply(make_key_str, axis=1)
         df_b_indexed["_diff_key_"] = df_b_indexed.apply(make_key_str, axis=1)
+
+        duplicates_a = df_a_indexed.loc[df_a_indexed["_diff_key_"].duplicated(False), "_diff_key_"].unique()
+        duplicates_b = df_b_indexed.loc[df_b_indexed["_diff_key_"].duplicated(False), "_diff_key_"].unique()
+        if len(duplicates_a) or len(duplicates_b):
+            samples = list(duplicates_a[:3]) + list(duplicates_b[:3])
+            raise DuplicateComparisonKeyError(
+                f"Comparison key is not unique. Select a complete composite key. Examples: {', '.join(samples)}"
+            )
 
         dict_a = {row["_diff_key_"]: row.to_dict() for _, row in df_a_indexed.iterrows()}
         dict_b = {row["_diff_key_"]: row.to_dict() for _, row in df_b_indexed.iterrows()}
@@ -265,8 +261,9 @@ class PandasEngine:
         if deduplicate:
             work_df = cls.deduplicate(work_df, dedup_keys)
 
-        if anonymize:
-            work_df = cls.anonymize(work_df)
+        # Sensitive-field policy is mandatory for every exported workbook.
+        # The legacy flag is retained for API compatibility but cannot disable it.
+        work_df = cls.anonymize(work_df)
 
         wb = Workbook()
         ws = wb.active

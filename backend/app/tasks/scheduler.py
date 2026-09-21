@@ -12,6 +12,8 @@ from app.schemas.query import QueryDefinition
 from app.services.sap_rfc import sap_gateway
 from app.services.pandas_engine import pandas_engine
 from app.services.telegram import telegram_service
+from app.core.security import decrypt_password
+from app.core.config import settings
 
 logger = logging.getLogger("smart_sqvi.scheduler")
 
@@ -99,7 +101,11 @@ async def run_report_schedule(schedule_id: int):
                 filename=filename,
                 caption=caption,
                 chat_id=schedule.telegram_chat_id,
-                bot_token=schedule.telegram_bot_token
+                bot_token=(
+                    decrypt_password(schedule.telegram_bot_token)
+                    if schedule.telegram_bot_token
+                    else settings.TELEGRAM_BOT_TOKEN
+                )
             )
 
         schedule.last_run_at = datetime.now(timezone.utc)
@@ -160,4 +166,3 @@ def shutdown_scheduler():
     if scheduler.running:
         scheduler.shutdown()
         logger.info("APScheduler stopped.")
-

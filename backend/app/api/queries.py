@@ -15,6 +15,7 @@ from app.schemas.query import (
 )
 from app.services.sap_rfc import sap_gateway
 from app.services.pandas_engine import pandas_engine
+from app.services.formula_engine import FormulaValidationError
 from app.services.abap_validator import abap_validator
 from app.services.query_executor import fetch_query_dataset
 
@@ -119,11 +120,18 @@ async def execute_query(req: QueryExecuteRequest, db: Session = Depends(get_db))
             detail=f"Gagal mengambil data dari server SAP {server.name} ({server.sid}): {err_msg}"
         )
 
-    # Apply variant custom columns if specified
+    # Custom columns are computed authoritatively on the backend. Project formulas
+    # remain compatible with saved definitions; a selected variant overrides them.
+    custom_formulas = query.customColumns or (query.options or {}).get("customColumns", [])
     if req.apply_variant_id:
         variant = db.query(ReportVariant).filter(ReportVariant.id == req.apply_variant_id).first()
         if variant and variant.custom_columns:
-            df = pandas_engine.apply_custom_formulas(df, variant.custom_columns)
+            custom_formulas = variant.custom_columns
+    if custom_formulas:
+        try:
+            df = pandas_engine.apply_custom_formulas(df, custom_formulas)
+        except FormulaValidationError as exc:
+            raise HTTPException(status_code=422, detail=str(exc)) from exc
 
     # Apply deduplication and anonymization
     if req.deduplicate:
@@ -240,4 +248,3 @@ async def export_query_results(
         media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
         headers={"Content-Disposition": "attachment; filename=Smart_SQVI_Export.xlsx"}
     )
-

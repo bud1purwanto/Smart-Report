@@ -5,6 +5,7 @@ from app.core.database import get_db
 from app.models.schedule import ReportSchedule
 from app.schemas.schedule import ScheduleCreate, ScheduleUpdate, ScheduleResponse
 from app.tasks.scheduler import reload_all_schedules, run_report_schedule
+from app.core.security import encrypt_password
 
 router = APIRouter(prefix="/schedules", tags=["Schedules"])
 
@@ -22,7 +23,7 @@ def create_schedule(data: ScheduleCreate, db: Session = Depends(get_db)):
         cron_expression=data.cron_expression,
         channel=data.channel,
         telegram_chat_id=data.telegram_chat_id,
-        telegram_bot_token=data.telegram_bot_token,
+        telegram_bot_token=encrypt_password(data.telegram_bot_token) if data.telegram_bot_token else None,
         anonymize=data.anonymize,
         deduplicate=data.deduplicate,
         export_format=data.export_format,
@@ -60,8 +61,8 @@ def update_schedule(schedule_id: int, data: ScheduleUpdate, db: Session = Depend
         schedule.channel = data.channel
     if data.telegram_chat_id is not None:
         schedule.telegram_chat_id = data.telegram_chat_id
-    if data.telegram_bot_token is not None:
-        schedule.telegram_bot_token = data.telegram_bot_token
+    if data.telegram_bot_token:
+        schedule.telegram_bot_token = encrypt_password(data.telegram_bot_token)
     if data.anonymize is not None:
         schedule.anonymize = data.anonymize
     if data.deduplicate is not None:
@@ -100,4 +101,3 @@ async def run_schedule_now(schedule_id: int, db: Session = Depends(get_db)):
         "last_run_at": schedule.last_run_at,
         "last_error": schedule.last_error
     }
-

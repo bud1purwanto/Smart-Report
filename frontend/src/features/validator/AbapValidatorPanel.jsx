@@ -5,6 +5,10 @@ import { validateQuery } from '../../services/api';
 
 export const AbapValidatorPanel = () => {
   const { getQueryDefinition } = useCanvasStore();
+  const nodes = useCanvasStore((state) => state.nodes);
+  const edges = useCanvasStore((state) => state.edges);
+  const selectedFields = useCanvasStore((state) => state.selectedFields);
+  const filters = useCanvasStore((state) => state.filters);
   const [validation, setValidation] = useState(null);
   const [copied, setCopied] = useState(false);
   const [isExpanded, setIsExpanded] = useState(false);
@@ -19,13 +23,18 @@ export const AbapValidatorPanel = () => {
       const res = await validateQuery(q);
       setValidation(res.data);
     } catch (e) {
-      console.error(e);
+      setValidation({
+        is_valid: false,
+        errors: [e.normalized?.message || 'Validator tidak dapat dihubungi. Coba lagi sebelum menjalankan query.'],
+        open_sql: '',
+      });
     }
   };
 
   useEffect(() => {
-    checkValidation();
-  }, [useCanvasStore.getState().nodes, useCanvasStore.getState().edges, useCanvasStore.getState().selectedFields]);
+    const timer = window.setTimeout(checkValidation, 300);
+    return () => window.clearTimeout(timer);
+  }, [nodes, edges, selectedFields, filters]);
 
   if (!validation) return null;
 
@@ -107,4 +116,3 @@ export const AbapValidatorPanel = () => {
     </div>
   );
 };
-

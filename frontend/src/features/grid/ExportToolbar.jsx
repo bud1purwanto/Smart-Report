@@ -66,7 +66,7 @@ export const ExportToolbar = () => {
 
       showNotification(t('grid.exportSuccess'), 'success');
     } catch (err) {
-      showNotification(`${t('grid.exportFailed')}: ${err.message}`, 'error');
+      showNotification(`${t('grid.exportFailed')}: ${err.normalized?.message || err.message}`, 'error');
     } finally {
       setIsExporting(false);
     }
@@ -98,7 +98,7 @@ export const ExportToolbar = () => {
         window.URL.revokeObjectURL(url);
         showNotification(t('pivot.exportCsvSuccess') || 'Data hasil pivot berhasil diekspor ke CSV.', 'success');
       } catch (err) {
-        showNotification(`${t('grid.exportFailed')}: ${err.message}`, 'error');
+        showNotification(`${t('grid.exportFailed')}: ${err.normalized?.message || err.message}`, 'error');
       }
       return;
     }
@@ -261,4 +261,3 @@ export const ExportToolbar = () => {
     </div>
   );
 };
-

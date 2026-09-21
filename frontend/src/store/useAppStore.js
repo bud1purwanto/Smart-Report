@@ -79,10 +79,13 @@ export const useAppStore = create((set, get) => ({
 
   showNotification: (msg, type = 'info') => {
     set({ notification: { message: msg, type } });
-    setTimeout(() => {
-      set({ notification: null });
-    }, 4000);
+    if (type !== 'error') {
+      setTimeout(() => {
+        set({ notification: null });
+      }, 4000);
+    }
   },
+  clearNotification: () => set({ notification: null }),
 
   loadServers: async () => {
     try {
@@ -95,6 +98,7 @@ export const useAppStore = create((set, get) => ({
       }
     } catch (e) {
       console.error('Failed to load SAP server profiles:', e);
+      get().showNotification(e.normalized?.message || 'Gagal memuat profil SAP. Periksa koneksi backend.', 'error');
     }
   },
 
@@ -104,6 +108,7 @@ export const useAppStore = create((set, get) => ({
       set({ savedQueries: res.data || [] });
     } catch (e) {
       console.error('Failed to load saved queries:', e);
+      get().showNotification(e.normalized?.message || 'Gagal memuat daftar query tersimpan.', 'error');
     }
   },
 
@@ -136,7 +141,7 @@ export const useAppStore = create((set, get) => ({
         get().showNotification(`Project query "${q.name}" berhasil dimuat.`, 'success');
       }
     } catch (e) {
-      get().showNotification('Gagal memuat query: ' + e.message, 'error');
+      get().showNotification('Gagal memuat query: ' + (e.normalized?.message || e.message), 'error');
     }
   },
 }));

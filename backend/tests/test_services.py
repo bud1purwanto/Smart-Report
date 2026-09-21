@@ -1,6 +1,7 @@
 import pytest
 import pandas as pd
 from app.services.pandas_engine import pandas_engine
+from app.services.pandas_engine import DuplicateComparisonKeyError
 from app.services.abap_validator import abap_validator
 from app.schemas.query import QueryDefinition, TableNodeItem, JoinItem, FieldSelectionItem, FilterItem
 from app.core.security import encrypt_password, decrypt_password
@@ -57,6 +58,17 @@ def test_pandas_diff_datasets():
     assert summary["added_count"] == 1
     assert summary["deleted_count"] == 1
 
+
+def test_pandas_diff_rejects_duplicate_composite_keys():
+    df_a = pd.DataFrame([
+        {"MATNR": "MAT-01", "PRICE": 100},
+        {"MATNR": "MAT-01", "PRICE": 110},
+    ])
+    df_b = pd.DataFrame([{"MATNR": "MAT-01", "PRICE": 100}])
+
+    with pytest.raises(DuplicateComparisonKeyError):
+        pandas_engine.diff_datasets(df_a, df_b, key_fields=["MATNR"])
+
 def test_excel_export():
     df = pd.DataFrame([
         {"MATNR": "MAT-01", "WRBTR": 1000}
@@ -64,6 +76,19 @@ def test_excel_export():
     content = pandas_engine.export_to_excel(df, title="Test", anonymize=True)
     assert isinstance(content, bytes)
     assert len(content) > 0
+
+
+def test_excel_export_always_masks_sensitive_financial_fields():
+    import io
+    from openpyxl import load_workbook
+
+    df = pd.DataFrame([{"MATNR": "MAT-01", "WRBTR": 1250000, "BANKN": "1234567890"}])
+    content = pandas_engine.export_to_excel(df, title="Sensitive", anonymize=False)
+    sheet = load_workbook(io.BytesIO(content), read_only=True).active
+    values = list(sheet.iter_rows(values_only=True))
+
+    assert values[1][1] == "***.***,00"
+    assert values[1][2] == "***7890"
 
 def test_abap_validator_valid():
     query = QueryDefinition(
@@ -134,4 +159,3 @@ def test_query_executor_build_rfc_where_clauses():
     flt_in = FilterItem(field="EKKO.BSART", operator="IN", value="NB, UB, FO")
     cond_in = parse_filter_condition(flt_in, "EKKO")
     assert cond_in == "BSART IN ('NB', 'UB', 'FO')"
-

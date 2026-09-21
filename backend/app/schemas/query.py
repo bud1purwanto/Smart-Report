@@ -1,5 +1,6 @@
-from typing import List, Optional, Dict, Any
-from pydantic import BaseModel, Field, ConfigDict
+import re
+from typing import List, Optional, Dict, Any, Literal
+from pydantic import BaseModel, Field, ConfigDict, field_validator, model_validator
 from datetime import datetime
 
 class TableNodeItem(BaseModel):
@@ -8,13 +9,21 @@ class TableNodeItem(BaseModel):
     alias: Optional[str] = None
     position: Optional[Dict[str, float]] = None
 
+    @field_validator("table")
+    @classmethod
+    def validate_table_name(cls, value: str):
+        normalized = value.strip().upper()
+        if not re.fullmatch(r"[A-Z0-9_/]{1,40}", normalized):
+            raise ValueError("Invalid SAP table identifier")
+        return normalized
+
 class JoinItem(BaseModel):
     id: Optional[str] = None
     sourceTableId: str
     targetTableId: str
     sourceField: str
     targetField: str
-    joinType: str = "INNER" # INNER, LEFT OUTER
+    joinType: Literal["INNER", "LEFT OUTER"] = "INNER"
 
 class FieldSelectionItem(BaseModel):
     tableId: str
@@ -28,20 +37,35 @@ class FieldSelectionItem(BaseModel):
 class FilterItem(BaseModel):
     field: str # e.g. "EKKO.BSART"
     fieldtext: Optional[str] = None
-    operator: str = "EQ" # EQ, NE, GT, LT, GE, LE, LIKE, IN, BETWEEN
+    operator: Literal["EQ", "NE", "GT", "LT", "GE", "LE", "LIKE", "IN", "BETWEEN"] = "EQ"
     value: Any
     valueTo: Optional[Any] = None
 
+    @field_validator("field")
+    @classmethod
+    def validate_field_name(cls, value: str):
+        normalized = value.strip().upper()
+        if not re.fullmatch(r"(?:[A-Z0-9_/]{1,40}\.)?[A-Z0-9_]{1,40}", normalized):
+            raise ValueError("Invalid SAP field identifier")
+        return normalized
+
 class QueryDefinition(BaseModel):
-    tables: List[TableNodeItem] = []
-    joins: List[JoinItem] = []
-    selectedFields: List[FieldSelectionItem] = []
-    filters: List[FilterItem] = []
-    customColumns: Optional[List[Dict[str, Any]]] = []
+    tables: List[TableNodeItem] = Field(default_factory=list)
+    joins: List[JoinItem] = Field(default_factory=list)
+    selectedFields: List[FieldSelectionItem] = Field(default_factory=list)
+    filters: List[FilterItem] = Field(default_factory=list)
+    customColumns: Optional[List[Dict[str, Any]]] = Field(default_factory=list)
     pivotConfig: Optional[Dict[str, Any]] = None
     anonymize: Optional[bool] = False
     deduplicate: Optional[bool] = False
     options: Optional[Dict[str, Any]] = Field(default_factory=lambda: {"rowcount": 100})
+
+    @model_validator(mode="after")
+    def validate_execution_limits(self):
+        rowcount = (self.options or {}).get("rowcount", 100)
+        if isinstance(rowcount, bool) or not isinstance(rowcount, int) or not 1 <= rowcount <= 10_000:
+            raise ValueError("rowcount must be an integer between 1 and 10000")
+        return self
 
 class SavedQueryBase(BaseModel):
     name: str

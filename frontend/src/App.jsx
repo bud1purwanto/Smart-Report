@@ -1,9 +1,7 @@
-import React, { useEffect } from 'react';
+import React, { lazy, Suspense, useEffect } from 'react';
 import { Navbar } from './components/Navbar';
 import { Sidebar } from './components/Sidebar';
 import { VisualCanvas } from './features/canvas/VisualCanvas';
-import { AlvGrid } from './features/grid/AlvGrid';
-import { ExportToolbar } from './features/grid/ExportToolbar';
 import { AbapValidatorPanel } from './features/validator/AbapValidatorPanel';
 import { JoinModal } from './features/canvas/JoinModal';
 import { TableCatalogModal } from './features/canvas/TableCatalogModal';
@@ -12,14 +10,26 @@ import { PivotModal } from './features/grid/PivotModal';
 import { VariantManagerModal } from './features/grid/VariantManagerModal';
 import { AiAssistantModal } from './features/chat/AiAssistantModal';
 import { FilterManagerModal } from './features/canvas/FilterManagerModal';
-import { CrossServerCompare } from './features/compare/CrossServerCompare';
-import { ScheduleManager } from './features/schedule/ScheduleManager';
-import { ServerManager } from './features/servers/ServerManager';
 import { useAppStore } from './store/useAppStore';
 import { useCanvasStore } from './store/useCanvasStore';
 import { useGridStore } from './store/useGridStore';
 import { Database } from 'lucide-react';
 import { getQueries, getQuery } from './services/api';
+
+const CrossServerCompare = lazy(() => import('./features/compare/CrossServerCompare').then((module) => ({ default: module.CrossServerCompare })));
+const ScheduleManager = lazy(() => import('./features/schedule/ScheduleManager').then((module) => ({ default: module.ScheduleManager })));
+const ServerManager = lazy(() => import('./features/servers/ServerManager').then((module) => ({ default: module.ServerManager })));
+const AlvGrid = lazy(() => import('./features/grid/AlvGrid').then((module) => ({ default: module.AlvGrid })));
+const ExportToolbar = lazy(() => import('./features/grid/ExportToolbar').then((module) => ({ default: module.ExportToolbar })));
+
+const WorkspaceFallback = () => (
+  <div className="flex flex-1 items-center justify-center bg-slate-50 dark:bg-slate-950" role="status" aria-live="polite">
+    <div className="flex items-center gap-3 rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm font-semibold text-slate-600 shadow-sm dark:border-slate-800 dark:bg-slate-900 dark:text-slate-300">
+      <span className="h-4 w-4 animate-spin rounded-full border-2 border-sky-500 border-t-transparent" />
+      Menyiapkan workspace…
+    </div>
+  </div>
+);
 
 export const App = () => {
   const {
@@ -28,6 +38,7 @@ export const App = () => {
     loadSavedQueries,
     setCurrentQuery,
     notification,
+    clearNotification,
     initTheme,
   } = useAppStore();
   const { loadQueryDefinition } = useCanvasStore();
@@ -72,7 +83,10 @@ export const App = () => {
               : 'bg-white/95 border-slate-200 text-slate-800 shadow-slate-200/50 dark:bg-slate-900/90 dark:border-slate-800 dark:text-slate-100'
           }`}
         >
-          {notification.message}
+          <div className="flex items-start gap-3">
+            <span className="max-w-md leading-5">{notification.message}</span>
+            <button type="button" onClick={clearNotification} className="rounded px-1 text-current opacity-60 hover:opacity-100" aria-label="Tutup notifikasi">×</button>
+          </div>
         </div>
       )}
 
@@ -124,17 +138,21 @@ export const App = () => {
                     : 'flex-1 h-full'
                 }`}
               >
-                <ExportToolbar />
-                <div className="flex-1 relative min-h-0">
-                  <AlvGrid />
-                </div>
+                <Suspense fallback={<WorkspaceFallback />}>
+                  <ExportToolbar />
+                  <div className="flex-1 relative min-h-0">
+                    <AlvGrid />
+                  </div>
+                </Suspense>
               </div>
             </div>
           )}
 
-          {activeTab === 'compare' && <CrossServerCompare />}
-          {activeTab === 'schedules' && <ScheduleManager />}
-          {activeTab === 'servers' && <ServerManager />}
+          <Suspense fallback={<WorkspaceFallback />}>
+            {activeTab === 'compare' && <CrossServerCompare />}
+            {activeTab === 'schedules' && <ScheduleManager />}
+            {activeTab === 'servers' && <ServerManager />}
+          </Suspense>
         </main>
       </div>
 
@@ -151,4 +169,3 @@ export const App = () => {
 };
 
 export default App;
-

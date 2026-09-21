@@ -15,9 +15,4 @@ def decrypt_password(encrypted_password: str) -> str:
     if not encrypted_password:
         return ""
     cipher = get_cipher()
-    try:
-        return cipher.decrypt(encrypted_password.encode("utf-8")).decode("utf-8")
-    except Exception as e:
-        # If decryption fails (e.g. key mismatch or plain text), return as-is or raise
-        return encrypted_password
-
+    return cipher.decrypt(encrypted_password.encode("utf-8")).decode("utf-8")

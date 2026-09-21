@@ -10,6 +10,7 @@ import { useCompareStore } from '../store/useCompareStore';
 import { useGridStore } from '../store/useGridStore';
 import { useTranslation } from '../locales/useTranslation';
 import { executeQuery, saveQuery, updateQuery, deleteQuery } from '../services/api';
+import { ConfirmDialog } from './ui/ConfirmDialog';
 
 export const Navbar = () => {
   const {
@@ -48,6 +49,7 @@ export const Navbar = () => {
   } = useCompareStore();
 
   const [projectDropdownOpen, setProjectDropdownOpen] = useState(false);
+  const [productionConfirmOpen, setProductionConfirmOpen] = useState(false);
 
   useEffect(() => {
     loadSavedQueries();
@@ -62,7 +64,7 @@ export const Navbar = () => {
     }
   }, [servers, serverAId, serverBId, setServers]);
 
-  const handleRunQuery = async () => {
+  const executeStudioQuery = async () => {
     const queryDef = getQueryDefinition();
     if (!queryDef.tables || queryDef.tables.length === 0) {
       showNotification(t('filter.noTablesWarning'), 'warning');
@@ -81,17 +83,18 @@ export const Navbar = () => {
       setGridData(res.data);
       showNotification(`${t('nav.querySuccess')}: ${res.data.total_rows} ${t('common.rows')} (${res.data.execution_time_ms} ms)`, 'success');
     } catch (err) {
-      const rawDetail = err.response?.data?.detail;
-      const msg = typeof rawDetail === 'string'
-        ? rawDetail
-        : rawDetail?.validation_errors
-        ? rawDetail.validation_errors.join(', ')
-        : typeof rawDetail === 'object'
-        ? JSON.stringify(rawDetail)
-        : err.message || 'Terjadi kesalahan pada eksekusi query.';
+      const msg = err.normalized?.message || err.message || 'Terjadi kesalahan pada eksekusi query.';
       setError(msg);
       showNotification(`${t('common.error')}: ${msg}`, 'error');
     }
+  };
+
+  const handleRunQuery = () => {
+    if (activeServer?.environment === 'production') {
+      setProductionConfirmOpen(true);
+      return;
+    }
+    executeStudioQuery();
   };
 
   const handleRunCompare = async () => {
@@ -109,7 +112,7 @@ export const Navbar = () => {
       await executeCompare();
       showNotification(t('nav.compareSuccess'), 'success');
     } catch (err) {
-      const msg = err.response?.data?.detail || err.message;
+      const msg = err.normalized?.message || err.message;
       showNotification(`${t('common.error')}: ${typeof msg === 'object' ? JSON.stringify(msg) : msg}`, 'error');
     }
   };
@@ -138,7 +141,7 @@ export const Navbar = () => {
       }
       await loadSavedQueries();
     } catch (err) {
-      showNotification(err.message, 'error');
+      showNotification(err.normalized?.message || err.message, 'error');
     }
   };
 
@@ -153,12 +156,13 @@ export const Navbar = () => {
         }
         await loadSavedQueries();
       } catch (err) {
-        showNotification(err.message, 'error');
+        showNotification(err.normalized?.message || err.message, 'error');
       }
     }
   };
 
   return (
+    <>
     <header className="h-14 border-b border-slate-200/80 dark:border-slate-800 bg-white/95 dark:bg-slate-900/95 backdrop-blur-md px-4 flex items-center justify-between z-30 shrink-0 shadow-xs transition-colors duration-200">
       {/* ============================================================ */}
       {/* BRAND & CONTEXT TITLE (SEPARATED PER TAB)                     */}
@@ -518,5 +522,17 @@ export const Navbar = () => {
         )}
       </div>
     </header>
+    <ConfirmDialog
+      open={productionConfirmOpen}
+      title="Jalankan query di sistem produksi?"
+      description={`Query akan membaca SAP ${activeServer?.sid || 'PRD'} client ${activeServer?.client || '-'}. Pastikan filter dan batas baris sudah sesuai sebelum melanjutkan.`}
+      confirmLabel="Ya, jalankan di PRD"
+      onCancel={() => setProductionConfirmOpen(false)}
+      onConfirm={() => {
+        setProductionConfirmOpen(false);
+        executeStudioQuery();
+      }}
+    />
+    </>
   );
 };
