@@ -11,15 +11,27 @@ echo "=================================================="
 echo "   🚀 LAUNCHING SMART REPORT (SAP QUERY ENGINE)   "
 echo "=================================================="
 
-# Check if port is already occupied
-if ss -tulpn 2>/dev/null | grep -q ":$PORT " || lsof -i :"$PORT" >/dev/null 2>&1; then
-    echo "⚠️  WARNING: Port $PORT is already in use!"
+# Function to check if a port is in use
+is_port_busy() {
+    local p="$1"
+    ss -tulpn 2>/dev/null | grep -q -E ":$p\b" || lsof -i :"$p" >/dev/null 2>&1
+}
+
+# Auto-detect and switch to next available port if requested port is occupied
+if is_port_busy "$PORT"; then
+    ORIG_PORT="$PORT"
     OCCUPIED_BY=$(docker ps --filter "publish=$PORT" --format "{{.Names}}" 2>/dev/null || true)
+    
+    echo "⚠️  Port $PORT is currently in use" ${OCCUPIED_BY:+"(occupied by Docker container: $OCCUPIED_BY)"}
+    
+    while is_port_busy "$PORT"; do
+        PORT=$((PORT + 1))
+    done
+    
+    echo "🔄 Automatically switching to available port: $PORT"
     if [ -n "$OCCUPIED_BY" ]; then
-        echo "   Port $PORT is used by Docker container: $OCCUPIED_BY"
-        echo "   To stop that container: docker stop $OCCUPIED_BY"
+        echo "   👉 Note: To free port $ORIG_PORT, run: docker stop $OCCUPIED_BY"
     fi
-    echo "   You can also specify a different port with: PORT=8002 ./start_app.sh"
     echo ""
 fi
 
