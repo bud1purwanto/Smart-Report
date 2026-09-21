@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import {
   Play, Sparkles, Plus, Save, Server, FolderKanban,
   FilePlus2, ChevronDown, Check, Trash2, SlidersHorizontal,
-  ArrowLeftRight, Layers, Columns2, Table2, Clock
+  ArrowLeftRight, Layers, Columns2, Table2, Clock, Menu
 } from 'lucide-react';
 import { useAppStore } from '../store/useAppStore';
 import { useCanvasStore } from '../store/useCanvasStore';
@@ -29,6 +29,7 @@ export const Navbar = () => {
     setTableCatalogOpen,
     setFilterModalOpen,
     showNotification,
+    toggleMobileSidebar,
   } = useAppStore();
 
   const { t } = useTranslation();
@@ -163,19 +164,30 @@ export const Navbar = () => {
 
   return (
     <>
-    <header className="h-14 border-b border-slate-200/80 dark:border-slate-800 bg-white/95 dark:bg-slate-900/95 backdrop-blur-md px-4 flex items-center justify-between z-30 shrink-0 shadow-xs transition-colors duration-200">
+    <header className="h-14 border-b border-slate-200/80 dark:border-slate-800 bg-white/95 dark:bg-slate-900/95 backdrop-blur-md px-2.5 sm:px-4 flex items-center justify-between z-30 shrink-0 shadow-xs transition-colors duration-200 gap-2">
       {/* ============================================================ */}
       {/* BRAND & CONTEXT TITLE (SEPARATED PER TAB)                     */}
       {/* ============================================================ */}
-      <div className="flex items-center gap-3">
+      <div className="flex items-center gap-2 sm:gap-3 min-w-0">
+        {/* Mobile Hamburger Drawer Button */}
+        <button
+          type="button"
+          onClick={toggleMobileSidebar}
+          className="p-1.5 rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-600 dark:text-slate-300 md:hidden cursor-pointer hover:bg-slate-100 dark:hover:bg-slate-700 shrink-0"
+          title="Buka Menu Modul"
+          aria-label="Toggle navigation menu"
+        >
+          <Menu className="w-4 h-4" />
+        </button>
+
         {/* Brand Logo */}
-        <div className="flex items-center gap-2 font-extrabold text-sm tracking-tight text-slate-900 dark:text-slate-100">
-          <span className={`w-8 h-8 rounded-lg text-white flex items-center justify-center font-mono text-xs shadow-sm ${
+        <div className="flex items-center gap-1.5 sm:gap-2 font-extrabold text-sm tracking-tight text-slate-900 dark:text-slate-100 shrink-0">
+          <span className={`w-7 h-7 sm:w-8 sm:h-8 rounded-lg text-white flex items-center justify-center font-mono text-xs shadow-sm ${
             activeTab === 'compare' ? 'bg-purple-600' : 'bg-sky-600'
           }`}>
             {activeTab === 'compare' ? <ArrowLeftRight className="w-4 h-4" /> : 'SR'}
           </span>
-          <span className={`bg-clip-text text-transparent font-black tracking-tight text-base ${
+          <span className={`bg-clip-text text-transparent font-black tracking-tight text-sm sm:text-base hidden xs:inline ${
             activeTab === 'compare'
               ? 'bg-gradient-to-r from-purple-700 to-indigo-700 dark:from-purple-400 dark:to-indigo-400'
               : 'bg-gradient-to-r from-sky-700 to-indigo-700 dark:from-sky-400 dark:to-indigo-400'
@@ -184,22 +196,22 @@ export const Navbar = () => {
           </span>
         </div>
 
-        <span className="text-slate-300 dark:text-slate-700">/</span>
+        <span className="text-slate-300 dark:text-slate-700 hidden sm:inline">/</span>
 
         {/* QUERY STUDIO CONTEXT */}
         {activeTab === 'studio' && (
-          <div className="flex items-center gap-2.5">
+          <div className="flex items-center gap-2 min-w-0">
             {/* Project Selector Dropdown */}
             <div className="relative">
               <button
                 onClick={() => setProjectDropdownOpen(!projectDropdownOpen)}
-                className="flex items-center gap-2 px-2.5 py-1 rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 hover:bg-slate-100/80 dark:hover:bg-slate-700 text-xs font-semibold text-slate-700 dark:text-slate-200 transition"
+                className="flex items-center gap-1.5 sm:gap-2 px-2 sm:px-2.5 py-1 rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 hover:bg-slate-100/80 dark:hover:bg-slate-700 text-xs font-semibold text-slate-700 dark:text-slate-200 transition shrink-0"
               >
-                <FolderKanban className="w-3.5 h-3.5 text-sky-600 dark:text-sky-400" />
-                <span className="max-w-[160px] truncate">
+                <FolderKanban className="w-3.5 h-3.5 text-sky-600 dark:text-sky-400 shrink-0" />
+                <span className="max-w-[100px] sm:max-w-[150px] truncate">
                   {currentQueryId ? currentQueryName : t('nav.unsavedProject')}
                 </span>
-                <ChevronDown className="w-3 h-3 text-slate-400" />
+                <ChevronDown className="w-3 h-3 text-slate-400 shrink-0" />
               </button>
 
               {projectDropdownOpen && (
@@ -261,12 +273,12 @@ export const Navbar = () => {
               )}
             </div>
 
-            {/* Editable Query Title */}
+            {/* Editable Query Title (Hidden on small mobile screens) */}
             <input
               type="text"
               value={currentQueryName}
               onChange={(e) => setCurrentQuery(currentQueryId, e.target.value)}
-              className="bg-slate-100/70 dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-750 border border-slate-200/80 dark:border-slate-700 focus:border-sky-500 rounded-lg px-2.5 py-1 text-xs text-slate-800 dark:text-slate-100 focus:outline-none w-56 transition font-medium focus:bg-white dark:focus:bg-slate-900"
+              className="bg-slate-100/70 dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-750 border border-slate-200/80 dark:border-slate-700 focus:border-sky-500 rounded-lg px-2.5 py-1 text-xs text-slate-800 dark:text-slate-100 focus:outline-none w-36 sm:w-48 transition font-medium focus:bg-white dark:focus:bg-slate-900 hidden md:block"
               placeholder={t('nav.reportNamePlaceholder')}
             />
           </div>
@@ -275,7 +287,7 @@ export const Navbar = () => {
         {/* CROSS-SERVER DIFF CONTEXT */}
         {activeTab === 'compare' && (
           <div className="flex items-center gap-2">
-            <span className="font-extrabold text-xs text-slate-800 dark:text-slate-100 uppercase tracking-wide">
+            <span className="font-extrabold text-xs text-slate-800 dark:text-slate-100 uppercase tracking-wide truncate">
               {t('nav.crossServerDiff')}
             </span>
             <span className="text-[10px] bg-purple-100 dark:bg-purple-950/60 text-purple-700 dark:text-purple-300 border border-purple-200 dark:border-purple-800 px-2 py-0.5 rounded-md font-mono font-bold hidden sm:inline">
@@ -287,7 +299,7 @@ export const Navbar = () => {
         {/* AUTO-BLAST TELEGRAM CONTEXT */}
         {activeTab === 'schedules' && (
           <div className="flex items-center gap-2">
-            <span className="font-extrabold text-xs text-slate-800 dark:text-slate-100 uppercase tracking-wide">
+            <span className="font-extrabold text-xs text-slate-800 dark:text-slate-100 uppercase tracking-wide truncate">
               {t('nav.schedulesTitle')}
             </span>
             <span className="text-[10px] bg-sky-100 dark:bg-sky-950/60 text-sky-700 dark:text-sky-300 border border-sky-200 dark:border-sky-800 px-2 py-0.5 rounded-md font-mono font-bold hidden sm:inline">
@@ -299,7 +311,7 @@ export const Navbar = () => {
         {/* SERVER PROFILES CONTEXT */}
         {activeTab === 'servers' && (
           <div className="flex items-center gap-2">
-            <span className="font-extrabold text-xs text-slate-800 dark:text-slate-100 uppercase tracking-wide">
+            <span className="font-extrabold text-xs text-slate-800 dark:text-slate-100 uppercase tracking-wide truncate">
               {t('nav.serversTitle')}
             </span>
             <span className="text-[10px] bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-700 px-2 py-0.5 rounded-md font-mono font-bold">
@@ -312,20 +324,20 @@ export const Navbar = () => {
       {/* ============================================================ */}
       {/* RIGHT ACTION TOOLBAR (SEPARATED PER TAB)                     */}
       {/* ============================================================ */}
-      <div className="flex items-center gap-2">
+      <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
         {/* ==================== QUERY STUDIO TOOLBAR ==================== */}
         {activeTab === 'studio' && (
           <>
             {/* Active Server Dropdown */}
-            <div className="flex items-center gap-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg px-2.5 py-1">
-              <Server className="w-3.5 h-3.5 text-sky-600 dark:text-sky-400" />
+            <div className="flex items-center gap-1.5 sm:gap-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg px-2 sm:px-2.5 py-1">
+              <Server className="w-3.5 h-3.5 text-sky-600 dark:text-sky-400 shrink-0" />
               <select
                 value={activeServer?.id || ''}
                 onChange={(e) => {
                   const s = servers.find((srv) => srv.id === parseInt(e.target.value));
                   if (s) setActiveServer(s);
                 }}
-                className="bg-transparent text-xs text-slate-800 dark:text-slate-200 focus:outline-none font-semibold cursor-pointer"
+                className="bg-transparent text-xs text-slate-800 dark:text-slate-200 focus:outline-none font-semibold cursor-pointer max-w-[90px] sm:max-w-[140px] truncate"
               >
                 {servers.map((s) => (
                   <option key={s.id} value={s.id} className="bg-white dark:bg-slate-900 text-slate-800 dark:text-slate-200">
@@ -334,43 +346,24 @@ export const Navbar = () => {
                 ))}
               </select>
               {activeServer?.environment === 'production' && (
-                <span className="text-[10px] bg-red-100 dark:bg-red-950/60 text-red-700 dark:text-red-400 border border-red-200 dark:border-red-800 px-1.5 py-0.2 rounded font-mono font-bold">
+                <span className="text-[10px] bg-red-100 dark:bg-red-950/60 text-red-700 dark:text-red-400 border border-red-200 dark:border-red-800 px-1.5 py-0.2 rounded font-mono font-bold hidden sm:inline">
                   PRD
                 </span>
               )}
             </div>
 
-            {/* New Query / Clear Canvas Button */}
-            <button
-              onClick={createNewProject}
-              className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-slate-100 dark:bg-slate-800 hover:bg-slate-200/80 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 text-xs font-semibold border border-slate-200 dark:border-slate-700 transition cursor-pointer"
-              title={t('nav.clearCanvasTitle')}
-            >
-              <FilePlus2 className="w-3.5 h-3.5 text-slate-600 dark:text-slate-400" />
-              <span className="hidden sm:inline">{t('nav.newQuery')}</span>
-            </button>
-
-            {/* AI Assistant Button */}
-            <button
-              onClick={() => setAiModalOpen(true)}
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-gradient-to-r from-purple-50 to-indigo-50 dark:from-purple-950/40 dark:to-indigo-950/40 hover:from-purple-100 hover:to-indigo-100 dark:hover:from-purple-900/40 dark:hover:to-indigo-900/40 border border-indigo-200 dark:border-indigo-800 text-indigo-700 dark:text-indigo-300 text-xs font-bold shadow-2xs transition cursor-pointer"
-            >
-              <Sparkles className="w-3.5 h-3.5 text-indigo-600 dark:text-indigo-400" />
-              <span className="hidden sm:inline">{t('nav.aiAssistant')}</span>
-            </button>
-
             {/* Selection Parameters / Filter Button (QUERY STUDIO) */}
             <button
               onClick={() => setFilterModalOpen(true)}
-              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg border text-xs font-semibold transition cursor-pointer ${
+              className={`flex items-center gap-1.5 px-2 sm:px-2.5 py-1.5 rounded-lg border text-xs font-semibold transition cursor-pointer ${
                 canvasFilters.length > 0
                   ? 'bg-amber-50 dark:bg-amber-950/40 border-amber-300 dark:border-amber-700 text-amber-800 dark:text-amber-300'
                   : 'bg-slate-50 dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-200'
               }`}
               title="Atur Kriteria Seleksi / Parameter Query (WHERE clause)"
             >
-              <SlidersHorizontal className="w-3.5 h-3.5 text-amber-600 dark:text-amber-400" />
-              <span>{t('nav.parameter')}</span>
+              <SlidersHorizontal className="w-3.5 h-3.5 text-amber-600 dark:text-amber-400 shrink-0" />
+              <span className="hidden sm:inline">{t('nav.parameter')}</span>
               {canvasFilters.length > 0 && (
                 <span className="bg-amber-500 text-white text-[10px] font-bold px-1.5 py-0.2 rounded-full">
                   {canvasFilters.length}
@@ -381,24 +374,25 @@ export const Navbar = () => {
             {/* Save Query Button */}
             <button
               onClick={handleSaveQuery}
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-slate-50 dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-200 text-xs font-semibold transition cursor-pointer"
+              className="flex items-center gap-1.5 px-2 sm:px-2.5 py-1.5 rounded-lg bg-slate-50 dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-200 text-xs font-semibold transition cursor-pointer"
+              title={t('nav.save')}
             >
-              <Save className="w-3.5 h-3.5 text-slate-600 dark:text-slate-400" />
-              <span className="hidden sm:inline">{t('nav.save')}</span>
+              <Save className="w-3.5 h-3.5 text-slate-600 dark:text-slate-400 shrink-0" />
+              <span className="hidden md:inline">{t('nav.save')}</span>
             </button>
 
             {/* Run Query Button */}
             <button
               onClick={handleRunQuery}
               disabled={isExecuting}
-              className={`flex items-center gap-1.5 px-4 py-1.5 rounded-lg text-xs font-bold shadow-sm transition cursor-pointer ${
+              className={`flex items-center gap-1.5 px-3 sm:px-4 py-1.5 rounded-lg text-xs font-bold shadow-sm transition cursor-pointer shrink-0 ${
                 isExecuting
                   ? 'bg-sky-400 text-white cursor-not-allowed'
                   : 'bg-sky-600 hover:bg-sky-500 text-white'
               }`}
             >
-              <Play className="w-3.5 h-3.5 fill-current" />
-              <span>{isExecuting ? t('nav.running') : t('nav.runQuery')}</span>
+              <Play className="w-3.5 h-3.5 fill-current shrink-0" />
+              <span className="font-extrabold">{isExecuting ? t('nav.running') : t('nav.runQuery')}</span>
             </button>
           </>
         )}

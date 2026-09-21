@@ -66,7 +66,12 @@ export const useAppStore = create((set, get) => ({
     get().setLanguage(nextLang);
   },
 
-  setActiveTab: (tab) => set({ activeTab: tab }),
+  // Mobile Navigation Drawer State
+  mobileSidebarOpen: false,
+  setMobileSidebarOpen: (val) => set({ mobileSidebarOpen: val }),
+  toggleMobileSidebar: () => set({ mobileSidebarOpen: !get().mobileSidebarOpen }),
+
+  setActiveTab: (tab) => set({ activeTab: tab, mobileSidebarOpen: false }),
   setCurrentQuery: (id, name) => set({ currentQueryId: id, currentQueryName: name }),
   setActiveServer: (server) => set({ activeServer: server }),
   setAiModalOpen: (val) => set({ aiModalOpen: val }),

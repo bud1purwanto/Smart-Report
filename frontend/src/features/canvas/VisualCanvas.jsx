@@ -76,10 +76,10 @@ export const VisualCanvas = () => {
         />
 
         {/* Top Floating Action Panel */}
-        <Panel position="top-left" className="flex items-center gap-2 m-3">
+        <Panel position="top-left" className="flex items-center gap-1.5 sm:gap-2 m-2 sm:m-3">
           <button
             onClick={() => setTableCatalogOpen(true)}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white/95 dark:bg-slate-900/90 hover:bg-slate-50 dark:hover:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-200 text-xs font-semibold shadow-xs backdrop-blur-sm transition cursor-pointer"
+            className="flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-xl bg-white/95 dark:bg-slate-900/90 hover:bg-slate-50 dark:hover:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-200 text-xs font-semibold shadow-xs backdrop-blur-sm transition cursor-pointer"
           >
             <Plus className="w-3.5 h-3.5 text-sky-600 dark:text-sky-400" />
             <span>{t('nav.addTable')}</span>
@@ -89,7 +89,7 @@ export const VisualCanvas = () => {
             <>
               <button
                 onClick={() => setJoinModalOpen(true, null)}
-                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl border text-xs font-semibold shadow-xs backdrop-blur-sm transition cursor-pointer ${
+                className={`flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-xl border text-xs font-semibold shadow-xs backdrop-blur-sm transition cursor-pointer ${
                   edges.length > 0
                     ? 'bg-sky-50/95 dark:bg-sky-950/80 border-sky-300 dark:border-sky-700 text-sky-800 dark:text-sky-300'
                     : 'bg-white/95 dark:bg-slate-900/90 hover:bg-slate-50 dark:hover:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-200'
@@ -97,7 +97,7 @@ export const VisualCanvas = () => {
                 title={t('join.modalTitle')}
               >
                 <GitFork className="w-3.5 h-3.5 text-sky-600 dark:text-sky-400" />
-                <span>{t('canvas.joins')}</span>
+                <span className="hidden sm:inline">{t('canvas.joins')}</span>
                 {edges.length > 0 && (
                   <span className="bg-sky-600 text-white text-[10px] font-bold px-1.5 py-0.2 rounded-full">
                     {edges.length}
@@ -131,15 +131,15 @@ export const VisualCanvas = () => {
 
         {/* Pending Connection Banner */}
         {pendingConnection && (
-          <Panel position="top-center" className="mt-3 z-30">
-            <div className="flex items-center gap-3 bg-amber-500 text-slate-950 font-semibold px-4 py-2 rounded-2xl shadow-xl border border-amber-300 animate-pulse text-xs">
-              <Link2 className="w-4 h-4" />
-              <span>
+          <Panel position="top-center" className="mt-3 z-30 max-w-[calc(100vw-2rem)]">
+            <div className="flex items-center gap-2 sm:gap-3 bg-amber-500 text-slate-950 font-semibold px-3 sm:px-4 py-1.5 sm:py-2 rounded-2xl shadow-xl border border-amber-300 animate-pulse text-xs">
+              <Link2 className="w-4 h-4 shrink-0" />
+              <span className="truncate">
                 {t('canvas.pendingRelBanner')} <strong>{pendingConnection.table}.{pendingConnection.field}</strong>
               </span>
               <button
                 onClick={() => setPendingConnection(null)}
-                className="ml-2 px-2.5 py-1 bg-black/20 hover:bg-black/40 rounded-lg text-xs font-bold text-white cursor-pointer transition"
+                className="ml-auto px-2 py-0.5 sm:px-2.5 sm:py-1 bg-black/20 hover:bg-black/40 rounded-lg text-xs font-bold text-white cursor-pointer transition shrink-0"
               >
                 {t('canvas.cancelPending')}
               </button>
@@ -149,8 +149,8 @@ export const VisualCanvas = () => {
 
         {/* Active Filters Pill Bar (Top Right) */}
         {filters.length > 0 && (
-          <Panel position="top-right" className="m-3 max-w-lg">
-            <div className="flex items-center gap-1.5 flex-wrap bg-white/95 dark:bg-slate-900/95 border border-amber-300 dark:border-amber-700/80 rounded-2xl p-1.5 px-3 shadow-lg backdrop-blur-md text-[11px]">
+          <Panel position="top-right" className="m-2 sm:m-3 max-w-[min(280px,calc(100vw-3rem))] sm:max-w-md">
+            <div className="flex items-center gap-1.5 flex-wrap bg-white/95 dark:bg-slate-900/95 border border-amber-300 dark:border-amber-700/80 rounded-2xl p-1.5 px-2.5 sm:px-3 shadow-lg backdrop-blur-md text-[11px] max-h-32 overflow-y-auto">
               <span className="font-bold text-amber-700 dark:text-amber-400 flex items-center gap-1">
                 <SlidersHorizontal className="w-3 h-3" />
                 <span>{t('canvas.whereClause')}</span>

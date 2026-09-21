@@ -1,10 +1,10 @@
 import React from 'react';
-import { LayoutGrid, ArrowLeftRight, Clock, Server, Sun, Moon, Languages } from 'lucide-react';
+import { LayoutGrid, ArrowLeftRight, Clock, Server, Sun, Moon, Languages, X } from 'lucide-react';
 import { useAppStore } from '../store/useAppStore';
 import { useTranslation } from '../locales/useTranslation';
 
 export const Sidebar = () => {
-  const { activeTab, setActiveTab, activeServer, theme, toggleTheme } = useAppStore();
+  const { activeTab, setActiveTab, activeServer, theme, toggleTheme, mobileSidebarOpen, setMobileSidebarOpen } = useAppStore();
   const { t, language, toggleLanguage } = useTranslation();
 
   const navItems = [
@@ -15,11 +15,40 @@ export const Sidebar = () => {
   ];
 
   return (
-    <aside className="w-60 border-r border-slate-200/90 dark:border-slate-800 bg-slate-50/80 dark:bg-slate-900/80 backdrop-blur flex flex-col justify-between p-3.5 select-none shrink-0 transition-colors duration-200">
-      <div className="space-y-4">
-        <div className="px-2 pt-1 text-[11px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500">
-          {t('sidebar.moduleHeader')}
-        </div>
+    <>
+      {/* Mobile Backdrop */}
+      {mobileSidebarOpen && (
+        <div
+          className="fixed inset-0 z-40 bg-black/60 backdrop-blur-xs md:hidden transition-opacity"
+          onClick={() => setMobileSidebarOpen(false)}
+          aria-hidden="true"
+        />
+      )}
+
+      <aside
+        className={`
+          fixed md:static inset-y-0 left-0 z-50 w-72 md:w-60
+          transform ${mobileSidebarOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'}
+          transition-transform duration-200 ease-in-out
+          border-r border-slate-200/90 dark:border-slate-800
+          bg-white dark:bg-slate-900 md:bg-slate-50/80 md:dark:bg-slate-900/80
+          backdrop-blur-md flex flex-col justify-between p-3.5 select-none shrink-0 shadow-2xl md:shadow-none
+        `}
+      >
+        <div className="space-y-4">
+          <div className="flex items-center justify-between px-2 pt-1">
+            <span className="text-[11px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500">
+              {t('sidebar.moduleHeader')}
+            </span>
+            <button
+              type="button"
+              onClick={() => setMobileSidebarOpen(false)}
+              className="p-1 rounded-lg text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 md:hidden cursor-pointer"
+              title="Close Menu"
+            >
+              <X className="w-4 h-4" />
+            </button>
+          </div>
         <nav className="space-y-1">
           {navItems.map((item) => {
             const Icon = item.icon;
@@ -112,5 +141,6 @@ export const Sidebar = () => {
         </div>
       </div>
     </aside>
+    </>
   );
 };
